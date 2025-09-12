@@ -1,0 +1,73 @@
+Redesign Dashboards for CHV, ParaBoda, Health Worker, Caregiver, and Admin
+
+I’m working on a React + TypeScript + Tailwind (Vite) project for the ParaBoda ecosystem.
+The Caregiver Dashboard has already been upgraded with a new MSUPU Wallet overview, functional quick actions, SHA loan features, and emergency requests.
+
+Now I need the CHV (Community Health Volunteer), ParaBoda, and Health Worker dashboards to be redesigned so they align with the Caregiver dashboard in layout, functionality, and UX consistency.
+
+Tasks
+1. Standardize Dashboards (CHV, ParaBoda, Health Worker)
+
+Use the same visual structure as the Caregiver Dashboard:
+
+Top Welcome Section (user greeting + wallet balance).
+
+MSUPU Wallet Overview (savings, loans, credit, SHA).
+
+Quick Actions (Apply for Loan, Add Savings, Loan Payment, View Credit Report, Rewards, Transport, Health Services).
+
+Active Loans + Loan History.
+
+Community Rewards section (linked to activities).
+
+Ensure all buttons are functional and responsive (no static buttons).
+
+2. Admin Dashboard Enhancements
+
+Add a Quick Overview section with metrics displayed in graphs:
+
+Active users
+
+Total savings across community
+
+Loans issued vs. repaid
+
+Emergency requests
+
+SHA contributions
+
+Use Recharts or a similar React charting library.
+
+Add a section where the Admin can switch into any user’s dashboard (Caregiver, CHV, ParaBoda, Health Worker) to view their activities in real time.
+
+3. Emergency Requests
+
+For Caregivers, move Emergency Request inside the Health Services category, instead of being a standalone Quick Action.
+
+Emergency Request should open a modal (ServiceRequestModal) with transport type and distance-based cost (Base 500 + 40 per km).
+
+4. Landing Page Simplification
+
+Redesign the landing page to make navigation simpler:
+
+Clean hero section introducing the ParaBoda Health Ecosystem.
+
+Login options (Caregiver, CHV, ParaBoda, Health Worker, Admin).
+
+One-click navigation into each dashboard.
+
+Use a minimal Tailwind grid layout, icons, and consistent color scheme.
+
+Deliverables
+
+Updated CHVDashboard.tsx, ParaBodaDashboard.tsx, HealthWorkerDashboard.tsx with the same structure/features as Caregiver Dashboard.
+
+Updated AdminDashboard.tsx with:
+
+Graph-based quick overview.
+
+User dashboard access feature.
+
+Updated CaregiverDashboard.tsx so that Emergency Request is under Health Services.
+
+New simplified LandingPage.tsx with clean navigation.

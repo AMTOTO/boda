@@ -1,0 +1,105 @@
+Task:
+Enhance the existing MSUPU Wallet (React + TypeScript + Tailwind, Vite) by:
+
+Integrating new loan design elements for medical + transport support.
+
+Fixing currently non-functional buttons (Apply for Loan, Add Savings, Add Loan Payment).
+
+Ensuring changes remain an add-on to the current MSUPU wallet infrastructure, not a separate module.
+
+Instructions for Code Integration
+1. Loan Add-On Design & UI
+
+Extend wallet’s UI with a Loan Options Modal/Screen accessible from “Apply for Loan.”
+
+Loan categories should include:
+
+Emergency Medical Loan (for urgent treatments, hospital admission)
+
+Antenatal Care (ANC) Loan
+
+Delivery Loan
+
+Maternal & Child Health Services Loan (postnatal, immunization, pediatrics)
+
+Transport Loan (emergency ambulance, caregiver transport)
+
+Each loan card should display:
+
+Loan type title + description
+
+Eligibility status indicator (linked to GenAI Credit Profiles)
+
+“Apply Now” button → triggers loan application form
+
+2. Fix Non-Functional Buttons
+
+Apply for Loan
+
+Implement click event → open loan selection modal.
+
+Enable loan application form submission (dummy API integration or hook into backend).
+
+Add Savings
+
+Implement form modal → input savings amount → confirm & update wallet balance.
+
+Add Loan Payment
+
+Implement form → repayment amount entry → update loan balance.
+
+Add confirmation feedback (toast/alert).
+
+3. Component Implementation (React + Tailwind)
+
+Create reusable components inside /src/components/wallet/:
+
+LoanOptionCard.tsx – displays loan type info, eligibility, and apply button.
+
+LoanApplicationModal.tsx – form for selecting loan type, amount, repayment terms.
+
+SavingsModal.tsx – input for adding savings.
+
+LoanRepaymentModal.tsx – input for repayment.
+
+Style with Tailwind utilities for responsive, mobile-first design.
+
+Use theme tokens from tailwind.config.js (extend if new colors/icons are required).
+
+4. Accessibility & Inclusivity
+
+Ensure all new buttons/forms have aria-labels and semantic markup.
+
+Support low literacy by pairing icons + text labels.
+
+Maintain color contrast (WCAG AA).
+
+5. Integration into MSUPU Wallet
+
+Modify existing wallet pages (Dashboard.tsx, Wallet.tsx, or Loans.tsx) to import the new components.
+
+Ensure loan, savings, and repayment flows integrate seamlessly with current MSUPU infrastructure (no new routing outside wallet).
+
+6. Deliverables
+
+Updated React + Tailwind component files:
+
+LoanOptionCard.tsx
+
+LoanApplicationModal.tsx
+
+SavingsModal.tsx
+
+LoanRepaymentModal.tsx
+
+Fixed implementations for:
+
+Apply for Loan
+
+Add Savings
+
+Add Loan Payment
+
+Updated tailwind.config.js (if new tokens were added).
+
+A short README.md explaining integration steps and component usage.

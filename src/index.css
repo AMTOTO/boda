@@ -1,0 +1,1681 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* African-inspired color palette */
+:root {
+  --african-sunset: #ff6b35;
+  --african-earth: #8b4513;
+  --african-gold: #ffd700;
+  --african-green: #228b22;
+  --african-red: #dc143c;
+  --african-blue: #4169e1;
+  --kenyan-flag-red: #ce1126;
+  --kenyan-flag-green: #007a3d;
+  --kenyan-flag-black: #000000;
+  --kenyan-flag-white: #ffffff;
+  --savanna-brown: #daa520;
+  --acacia-green: #9acd32;
+  --kilimanjaro-blue: #87ceeb;
+  --kente-gold: #ffd700;
+  --kente-red: #dc2626;
+  --kente-green: #059669;
+  --kente-blue: #3b82f6;
+  --mudcloth-brown: #8b4513;
+  --mudcloth-tan: #daa520;
+  --tribal-orange: #ff6b35;
+  --tribal-yellow: #fbbf24;
+}
+
+/* Responsive design foundation */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  
+  body {
+    font-size: clamp(14px, 2.5vw, 18px);
+    line-height: 1.6;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    @apply bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white transition-colors duration-200;
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Root container */
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  
+  /* Responsive touch targets */
+  button, 
+  a, 
+  [role="button"] {
+    min-height: clamp(44px, 8vw, 56px);
+    min-width: clamp(44px, 8vw, 56px);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improved touch feedback */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease-in-out;
+  }
+  
+  /* Form inputs responsive sizing */
+  input,
+  textarea,
+  select {
+    font-size: clamp(16px, 3vw, 18px);
+    min-height: clamp(44px, 8vw, 56px);
+  }
+  
+  /* Better focus indicators */
+  *:focus-visible {
+    outline: 4px solid #fbbf24;
+    outline-offset: 3px;
+  }
+
+  /* Dark mode adjustments */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    @apply bg-gray-800 border-gray-700 text-white;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    @apply text-gray-400;
+  }
+
+  .dark button {
+    @apply text-white;
+  }
+
+  /* Prevent horizontal scroll */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Safe area support for devices with notches */
+  .safe-area-top {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+
+  .safe-area-left {
+    padding-left: max(env(safe-area-inset-left), 1rem);
+  }
+
+  .safe-area-right {
+    padding-right: max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* African cultural patterns and textures */
+@layer utilities {
+  .kenyan-stripe {
+    background: linear-gradient(
+      to right,
+      #000000 0%,
+      #000000 20%,
+      #ce1126 20%,
+      #ce1126 40%,
+      #ffffff 40%,
+      #ffffff 60%,
+      #007a3d 60%,
+      #007a3d 80%,
+      #000000 80%,
+      #000000 100%
+    );
+    height: clamp(4px, 1vw, 8px);
+  }
+
+  .pattern-kente {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--kente-gold) 0px,
+      var(--kente-gold) 15px,
+      var(--kente-red) 15px,
+      var(--kente-red) 30px,
+      var(--kente-green) 30px,
+      var(--kente-green) 45px,
+      var(--kente-blue) 45px,
+      var(--kente-blue) 60px
+    );
+    opacity: 0.1;
+  }
+  
+  .pattern-mudcloth {
+    background-image: 
+      radial-gradient(circle at 3px 3px, var(--mudcloth-brown) 3px, transparent 0),
+      radial-gradient(circle at 18px 18px, var(--mudcloth-tan) 2px, transparent 0);
+    background-size: 30px 30px;
+    opacity: 0.08;
+  }
+
+  .pattern-tribal {
+    background-image: 
+      linear-gradient(45deg, var(--tribal-orange) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--tribal-orange) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--tribal-yellow) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--tribal-yellow) 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+    opacity: 0.06;
+  }
+
+  .pattern-african-geometric {
+    background-image: 
+      linear-gradient(30deg, #fbbf24 12%, transparent 12.5%, transparent 87%, #fbbf24 87.5%, #fbbf24),
+      linear-gradient(150deg, #fbbf24 12%, transparent 12.5%, transparent 87%, #fbbf24 87.5%, #fbbf24),
+      linear-gradient(30deg, #fbbf24 12%, transparent 12.5%, transparent 87%, #fbbf24 87.5%, #fbbf24),
+      linear-gradient(150deg, #fbbf24 12%, transparent 12.5%, transparent 87%, #fbbf24 87.5%, #fbbf24);
+    background-size: 80px 140px;
+    background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+    opacity: 0.05;
+  }
+
+  .pattern-baobab {
+    background-image: 
+      radial-gradient(circle at 50% 50%, #8b4513 2px, transparent 2px),
+      radial-gradient(circle at 25% 25%, #daa520 1px, transparent 1px),
+      radial-gradient(circle at 75% 75%, #228b22 1px, transparent 1px);
+    background-size: 60px 60px, 40px 40px, 80px 80px;
+    opacity: 0.04;
+  }
+
+  /* African-inspired gradients */
+  .bg-african-sunset {
+    background: linear-gradient(135deg, var(--african-sunset) 0%, #f7931e 50%, var(--african-gold) 100%);
+  }
+  
+  .bg-kenyan-pride {
+    background: linear-gradient(135deg, var(--kenyan-flag-green) 0%, var(--african-gold) 25%, var(--kenyan-flag-red) 50%, var(--kenyan-flag-black) 75%, var(--kenyan-flag-white) 100%);
+  }
+  
+  .bg-savanna {
+    background: linear-gradient(135deg, var(--savanna-brown) 0%, var(--acacia-green) 50%, var(--african-green) 100%);
+  }
+
+  .bg-kilimanjaro {
+    background: linear-gradient(135deg, var(--kilimanjaro-blue) 0%, #ffffff 50%, var(--african-green) 100%);
+  }
+
+  .bg-maasai {
+    background: linear-gradient(135deg, #dc2626 0%, #fbbf24 25%, #059669 50%, #3b82f6 75%, #7c3aed 100%);
+  }
+
+  /* Dashboard-specific African backgrounds */
+  .dashboard-bg-community {
+    @apply bg-gradient-to-br from-green-100 via-yellow-100 to-red-100 dark:from-green-950 dark:via-yellow-950 dark:to-red-950;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-bg-community::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-baobab);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .dashboard-bg-rider {
+    @apply bg-gradient-to-br from-blue-100 via-yellow-100 to-red-100 dark:from-blue-950 dark:via-yellow-950 dark:to-red-950;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-bg-rider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-tribal);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .dashboard-bg-chv {
+    @apply bg-gradient-to-br from-red-100 via-yellow-100 to-green-100 dark:from-red-950 dark:via-yellow-950 dark:to-green-950;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-bg-chv::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-kente);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .dashboard-bg-health {
+    @apply bg-gradient-to-br from-green-100 via-red-100 to-yellow-100 dark:from-green-950 dark:via-red-950 dark:to-yellow-950;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-bg-health::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-mudcloth);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .dashboard-bg-admin {
+    @apply bg-gradient-to-br from-purple-100 via-blue-100 to-indigo-100 dark:from-purple-950 dark:via-blue-950 dark:to-indigo-950;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-bg-admin::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-african-geometric);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Low literacy accessibility improvements */
+  .low-literacy-button {
+    @apply min-h-[64px] text-lg font-black flex flex-col items-center justify-center space-y-2 p-4 rounded-2xl transition-all shadow-lg;
+  }
+
+  .low-literacy-button:hover {
+    @apply transform scale-105 shadow-xl;
+  }
+
+  .low-literacy-text {
+    @apply text-xl font-bold leading-relaxed;
+  }
+
+  .low-literacy-icon {
+    @apply w-12 h-12 mb-2;
+  }
+
+  /* East African flag color schemes */
+  .east-african-nav {
+    background: linear-gradient(90deg, 
+      #007a3d 0%, #007a3d 20%,
+      #ffd700 20%, #ffd700 40%,
+      #ce1126 40%, #ce1126 60%,
+      #000000 60%, #000000 80%,
+      #ffffff 80%, #ffffff 100%
+    );
+  }
+
+  .uganda-nav {
+    background: linear-gradient(90deg, 
+      #000000 0%, #000000 16.66%,
+      #fcd116 16.66%, #fcd116 33.33%,
+      #d90000 33.33%, #d90000 50%,
+      #000000 50%, #000000 66.66%,
+      #fcd116 66.66%, #fcd116 83.33%,
+      #d90000 83.33%, #d90000 100%
+    );
+  }
+
+  .tanzania-nav {
+    background: linear-gradient(135deg, 
+      #00a651 0%, #00a651 45%,
+      #fcd116 45%, #fcd116 55%,
+      #1eb53a 55%, #1eb53a 100%
+    );
+  }
+
+  .rwanda-nav {
+    background: linear-gradient(90deg, 
+      #20603d 0%, #20603d 33.33%,
+      #fad201 33.33%, #fad201 66.66%,
+      #00a1de 66.66%, #00a1de 100%
+    );
+  }
+
+  /* Auto-deduction animation */
+  .auto-deduct-animation {
+    @apply animate-pulse bg-gradient-to-r from-green-400 to-blue-500;
+  }
+
+  /* GPS location indicator */
+  .gps-indicator {
+    @apply inline-flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium;
+  }
+
+  .gps-indicator::before {
+    content: '📍';
+    margin-right: 0.25rem;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
+  }
+  
+  .text-responsive-xl {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .text-responsive-2xl {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  }
+
+  .text-responsive-3xl {
+    font-size: clamp(2rem, 7vw, 3rem);
+  }
+
+  /* Glass effect with African warmth */
+  .glass-effect {
+    @apply bg-white/25 dark:bg-black/25 backdrop-blur-md border-2 border-white/20 dark:border-white/10;
+  }
+
+  .glass-effect-warm {
+    @apply bg-yellow-500/15 dark:bg-yellow-500/10 backdrop-blur-md border-2 border-yellow-500/25 dark:border-yellow-500/20;
+  }
+
+  /* Responsive spacing */
+  .space-responsive {
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  .p-responsive {
+    padding: clamp(1rem, 4vw, 2rem);
+  }
+
+  .m-responsive {
+    margin: clamp(1rem, 4vw, 2rem);
+  }
+
+  /* Mobile-first grid utilities */
+  .grid-responsive-2 {
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  }
+
+  .grid-responsive-3 {
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  }
+
+  .grid-responsive-4 {
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  }
+
+  .grid-responsive-5 {
+    grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  }
+
+  /* African-inspired icon containers */
+  .icon-african {
+    @apply bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 rounded-2xl p-3 shadow-lg;
+  }
+
+  .icon-kenyan {
+    @apply bg-gradient-to-br from-green-500 to-red-500 dark:from-green-600 dark:to-red-600 rounded-2xl p-3 shadow-lg;
+  }
+
+  .icon-tribal {
+    @apply bg-gradient-to-br from-orange-500 to-yellow-500 dark:from-orange-600 dark:to-yellow-600 rounded-2xl p-3 shadow-lg;
+  }
+
+  /* Responsive container utilities */
+  .container-responsive {
+    width: 100%;
+    max-width: min(1200px, calc(100vw - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+  }
+
+  .section-responsive {
+    padding: clamp(2rem, 8vw, 4rem) 0;
+  }
+
+  /* Flexible grid system */
+  .grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: clamp(1rem, 4vw, 2rem);
+  }
+
+  .grid-auto-fill {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+    gap: clamp(1rem, 4vw, 2rem);
+  }
+
+  /* Responsive typography scale */
+  .heading-1 {
+    font-size: clamp(1.75rem, 6vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .heading-2 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .heading-3 {
+    font-size: clamp(1.25rem, 4vw, 2rem);
+    font-weight: 700;
+    line-height: 1.3;
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .body-large {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    line-height: 1.6;
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  .body-regular {
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+    line-height: 1.6;
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  /* Extra large emojis for low literacy */
+  .emoji-xl {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  }
+
+  .emoji-2xl {
+    font-size: clamp(3rem, 10vw, 5rem);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  }
+
+  .emoji-3xl {
+    font-size: clamp(4rem, 12vw, 6rem);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  }
+
+  .emoji-4xl {
+    font-size: clamp(5rem, 15vw, 8rem);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  }
+
+  /* Icon-heavy interface styles for low literacy */
+  .icon-heavy-card {
+    @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-4 border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-6 text-center transition-all shadow-xl relative overflow-hidden;
+    min-height: clamp(200px, 25vw, 300px);
+  }
+
+  .icon-heavy-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--pattern-kente);
+    opacity: 0.03;
+    pointer-events: none;
+  }
+
+  .icon-heavy-card:hover {
+    @apply transform -translate-y-2 shadow-2xl border-yellow-400 dark:border-yellow-600;
+  }
+
+  .icon-heavy-button {
+    @apply bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 text-white border-0 rounded-2xl py-3 sm:py-4 px-4 sm:px-6 text-base sm:text-lg font-black uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 sm:gap-3 relative overflow-hidden;
+    min-height: clamp(48px, 8vw, 64px);
+  }
+
+  .icon-heavy-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .icon-heavy-button:hover::before {
+    left: 100%;
+  }
+
+  .icon-heavy-button:hover {
+    @apply bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-700 dark:to-emerald-800 transform -translate-y-1 shadow-xl;
+  }
+
+  /* African-inspired button styles */
+  .btn-african {
+    @apply bg-gradient-to-r from-orange-500 to-yellow-500 dark:from-orange-600 dark:to-yellow-600 text-white border-0 py-3 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-base sm:text-lg transition-all shadow-lg uppercase tracking-wider relative overflow-hidden;
+    min-height: clamp(48px, 8vw, 64px);
+  }
+
+  /* MSUPU Wallet specific styles */
+  .wallet-card {
+    @apply bg-white dark:bg-gray-800 rounded-3xl shadow-wallet-xl border-2 border-wallet-secondary-100 dark:border-wallet-secondary-700 overflow-hidden;
+  }
+
+  .wallet-button {
+    @apply min-h-[48px] px-4 py-3 rounded-2xl font-semibold transition-all shadow-wallet active:scale-95 flex items-center justify-center space-x-2;
+  }
+
+  .wallet-button-primary {
+    @apply wallet-button bg-gradient-to-r from-wallet-primary-500 to-wallet-primary-600 text-white hover:from-wallet-primary-600 hover:to-wallet-primary-700;
+  }
+
+  .wallet-button-secondary {
+    @apply wallet-button bg-wallet-secondary-100 dark:bg-wallet-secondary-800 text-wallet-secondary-700 dark:text-wallet-secondary-300 hover:bg-wallet-secondary-200 dark:hover:bg-wallet-secondary-700;
+  }
+
+  .wallet-button-success {
+    @apply wallet-button bg-gradient-to-r from-wallet-success-500 to-wallet-success-600 text-white hover:from-wallet-success-600 hover:to-wallet-success-700;
+  }
+
+  .wallet-button-warning {
+    @apply wallet-button bg-gradient-to-r from-wallet-warning-500 to-wallet-warning-600 text-white hover:from-wallet-warning-600 hover:to-wallet-warning-700;
+  }
+
+  .wallet-button-error {
+    @apply wallet-button bg-gradient-to-r from-wallet-error-500 to-wallet-error-600 text-white hover:from-wallet-error-600 hover:to-wallet-error-700;
+  }
+
+  .wallet-input {
+    @apply w-full px-4 py-3 border-2 border-wallet-secondary-300 dark:border-wallet-secondary-600 rounded-2xl focus:ring-4 focus:ring-wallet-primary-500/20 focus:border-wallet-primary-500 dark:bg-gray-700 dark:text-white transition-all;
+  }
+
+  .wallet-card-header {
+    @apply p-6 border-b border-wallet-secondary-200 dark:border-wallet-secondary-700 bg-gradient-to-r from-wallet-primary-50 to-wallet-secondary-50 dark:from-wallet-primary-900/20 dark:to-wallet-secondary-900/20;
+  }
+
+  .wallet-progress-bar {
+    @apply w-full bg-wallet-secondary-200 dark:bg-wallet-secondary-700 rounded-full h-3 overflow-hidden;
+  }
+
+  .wallet-progress-fill {
+    @apply h-full rounded-full transition-all duration-500 relative;
+  }
+
+  .wallet-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer-gold 2s infinite;
+  }
+
+  .trust-indicator {
+    @apply inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .trust-indicator-approved {
+    @apply trust-indicator bg-wallet-success-100 text-wallet-success-700 dark:bg-wallet-success-900/30 dark:text-wallet-success-300;
+  }
+
+  .trust-indicator-pending {
+    @apply trust-indicator bg-wallet-warning-100 text-wallet-warning-700 dark:bg-wallet-warning-900/30 dark:text-wallet-warning-300;
+  }
+
+  .trust-indicator-denied {
+    @apply trust-indicator bg-wallet-error-100 text-wallet-error-700 dark:bg-wallet-error-900/30 dark:text-wallet-error-300;
+  }
+
+  .trust-indicator-neutral {
+    @apply trust-indicator bg-wallet-secondary-100 text-wallet-secondary-700 dark:bg-wallet-secondary-800 dark:text-wallet-secondary-300;
+  }
+
+  /* Chat bubble styles */
+  .chat-bubble-user {
+    @apply bg-gradient-to-r from-wallet-primary-500 to-wallet-primary-600 text-white rounded-3xl rounded-tr-lg p-4 max-w-[85%] ml-auto;
+  }
+
+  .chat-bubble-coach {
+    @apply bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-3xl rounded-tl-lg shadow-wallet border border-wallet-secondary-200 dark:border-wallet-secondary-700 p-4 max-w-[85%];
+  }
+
+  /* Accessibility improvements for wallet components */
+  .wallet-interactive {
+    @apply min-h-[48px] min-w-[48px] touch-manipulation;
+  }
+
+  .wallet-interactive:focus-visible {
+    @apply outline-4 outline-wallet-primary-500 outline-offset-2;
+  }
+
+  /* WCAG AA compliant text colors */
+  .wallet-text-primary {
+    @apply text-wallet-primary-700 dark:text-wallet-primary-300;
+  }
+
+  .wallet-text-secondary {
+    @apply text-wallet-secondary-700 dark:text-wallet-secondary-300;
+  }
+
+  .wallet-text-muted {
+    @apply text-wallet-secondary-500 dark:text-wallet-secondary-400;
+  }
+
+  .btn-african::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-african:hover::before {
+    left: 100%;
+  }
+
+  .btn-african:hover {
+    @apply bg-gradient-to-r from-orange-600 to-yellow-600 dark:from-orange-700 dark:to-yellow-700 transform -translate-y-1 shadow-xl;
+  }
+
+  .btn-kenyan {
+    @apply bg-gradient-to-r from-green-500 to-red-500 dark:from-green-600 dark:to-red-600 text-white border-0 py-3 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-base sm:text-lg transition-all shadow-lg;
+    min-height: clamp(48px, 8vw, 64px);
+  }
+
+  .btn-kenyan:hover {
+    @apply transform -translate-y-1 shadow-xl;
+  }
+}
+
+/* Enhanced animations with African flair */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header responsive improvements */
+.header-responsive {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: clamp(0.75rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+}
+
+.header-responsive .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: clamp(1rem, 4vw, 2rem);
+}
+
+.header-responsive .header-actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  flex-wrap: wrap;
+}
+
+/* Improved button hover effects */
+.btn-hover-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-hover-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.btn-hover-glow:hover::before {
+  left: 100%;
+}
+
+.btn-hover-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Modal improvements */
+.modal-responsive {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: min(600px, calc(100vw - 2rem));
+  margin: 0 auto;
+  @apply bg-white dark:bg-gray-800 rounded-3xl shadow-2xl;
+  max-height: calc(100vh - 4rem);
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+}
+
+/* MSUPU Wallet specific animations */
+@keyframes walletSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes walletPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes walletShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-wallet-slide-in {
+  animation: walletSlideIn 0.4s ease-out;
+}
+
+.animate-wallet-pulse {
+  animation: walletPulse 2s ease-in-out infinite;
+}
+
+.animate-wallet-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: walletShimmer 2s infinite;
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes pulse-african {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+    box-shadow: 0 0 50px rgba(251, 191, 36, 0.9);
+  }
+}
+
+@keyframes shimmer-gold {
+  0% {
+    background-position: -300% 0;
+  }
+  100% {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes dance-african {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-5px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(5px) rotate(2deg);
+  }
+}
+
+@keyframes glow-african {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 107, 53, 0.6);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 3s ease-in-out infinite;
+}
+
+.animate-pulse-african {
+  animation: pulse-african 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-shimmer-gold {
+  background: linear-gradient(90deg, #fbbf24 25%, #f59e0b 50%, #fbbf24 75%);
+  background-size: 300% 100%;
+  animation: shimmer-gold 3s infinite;
+}
+
+.animate-dance-african {
+  animation: dance-african 2s ease-in-out infinite;
+}
+
+.animate-glow-african {
+  animation: glow-african 3s ease-in-out infinite;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  .mobile-stack {
+    flex-direction: column;
+  }
+  
+  .mobile-full {
+    width: 100%;
+  }
+  
+  .mobile-center {
+    text-align: center;
+  }
+
+  /* Larger touch targets for mobile */
+  button, a, [role="button"] {
+    min-height: 56px;
+    min-width: 56px;
+    padding: 16px 20px;
+  }
+
+  /* Mobile navigation */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    @apply bg-white dark:bg-gray-900 border-t-4 border-yellow-400 dark:border-yellow-600 p-4 z-50;
+  }
+
+  .mobile-nav-item {
+    @apply flex flex-col items-center p-3 rounded-2xl transition-all;
+  }
+
+  .mobile-nav-item.active {
+    @apply bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400;
+  }
+
+  /* Prevent zoom on input focus */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Better modal sizing on mobile */
+  .modal-mobile {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tablet-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .tablet-spacing {
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .desktop-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .desktop-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .desktop-spacing {
+    gap: clamp(2rem, 3vw, 3rem);
+  }
+}
+
+/* Landscape phone optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .landscape-compact {
+    padding: 0.5rem;
+  }
+  
+  .landscape-hide {
+    display: none;
+  }
+  
+  /* Reduce header height on landscape phones */
+  .header-landscape {
+    min-height: 60px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .border-gray-200 {
+    border-color: #000;
+  }
+  
+  .text-gray-600 {
+    color: #000;
+  }
+  
+  .bg-gray-50 {
+    background-color: #fff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .bg-gradient-to-r,
+  .bg-gradient-to-br,
+  .bg-african-sunset,
+  .bg-kenyan-pride,
+  .bg-savanna {
+    background: white !important;
+  }
+}
+
+/* Loading spinner with vibrant African colors */
+.spinner-african {
+  border: 8px solid #fef3c7;
+  border-top: 8px solid var(--african-sunset);
+  border-right: 8px solid var(--african-gold);
+  border-bottom: 8px solid var(--african-green);
+  border-left: 8px solid var(--kenyan-flag-red);
+  border-radius: 50%;
+  width: clamp(60px, 10vw, 80px);
+  height: clamp(60px, 10vw, 80px);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Accessibility improvements */
+.focus-visible:focus {
+  outline: 6px solid #fbbf24;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 0 9px #fbbf24;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive card hover effects */
+.card-hover {
+  transition: all 0.4s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(clamp(-5px, -2vw, -10px));
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 40px rgba(251, 191, 36, 0.4);
+}
+
+/* Visual-first design for low literacy */
+.visual-first {
+  text-align: center;
+  position: relative;
+}
+
+.visual-first::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-tribal);
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+.visual-first .emoji {
+  font-size: clamp(3rem, 10vw, 6rem);
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.visual-first .title {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: clamp(0.25rem, 1vw, 0.5rem);
+  @apply text-gray-900 dark:text-gray-100;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.visual-first .subtitle {
+  font-size: clamp(0.875rem, 3vw, 1.25rem);
+  font-weight: 700;
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+/* Color-coded sections for easy recognition */
+.section-emergency {
+  @apply bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-900/20 border-4 border-red-300 dark:border-red-800 relative;
+}
+
+.section-emergency::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-tribal);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.section-health {
+  @apply bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/20 border-4 border-blue-300 dark:border-blue-800 relative;
+}
+
+.section-health::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-mudcloth);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.section-transport {
+  @apply bg-gradient-to-br from-yellow-100 to-yellow-50 dark:from-yellow-900/30 dark:to-yellow-900/20 border-4 border-yellow-300 dark:border-yellow-800 relative;
+}
+
+.section-transport::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-kente);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.section-community {
+  @apply bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/20 border-4 border-emerald-300 dark:border-emerald-800 relative;
+}
+
+.section-community::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-baobab);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* ParaBoda AI specific styles */
+.paraboda-ai-container {
+  @apply bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-900 dark:to-purple-900 rounded-3xl p-4 sm:p-8 text-white relative overflow-hidden;
+}
+
+.paraboda-ai-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pattern-african-geometric);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.paraboda-ai-card {
+  @apply bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-6 transition-all;
+}
+
+.paraboda-ai-card:hover {
+  @apply bg-white/15 dark:bg-white/10 transform -translate-y-1 shadow-xl;
+}
+
+/* Chatbot styles */
+.chatbot-container {
+  position: fixed;
+  bottom: clamp(20px, 4vw, 30px);
+  right: clamp(20px, 4vw, 30px);
+  z-index: 1000;
+}
+
+.chatbot-button {
+  width: clamp(50px, 12vw, 70px);
+  height: clamp(50px, 12vw, 70px);
+  border-radius: 50%;
+  @apply bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 text-white flex items-center justify-center cursor-pointer shadow-lg transition-all;
+}
+
+.chatbot-button:hover {
+  transform: scale(1.1);
+  @apply shadow-xl;
+}
+
+.chatbot-window {
+  position: fixed;
+  bottom: clamp(80px, 15vw, 120px);
+  right: clamp(20px, 4vw, 30px);
+  width: min(350px, calc(100vw - 40px));
+  height: min(500px, calc(100vh - 140px));
+  height: min(500px, calc(100dvh - 140px));
+  @apply bg-white dark:bg-gray-800 rounded-2xl overflow-hidden flex flex-col shadow-2xl z-50;
+}
+
+.chatbot-header {
+  @apply bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 text-white p-4 flex justify-between items-center;
+}
+
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  @apply bg-gray-50 dark:bg-gray-900;
+}
+
+.chatbot-input {
+  padding: 15px;
+  @apply border-t border-gray-200 dark:border-gray-700 flex bg-white dark:bg-gray-800;
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 10px 15px;
+  @apply border border-gray-300 dark:border-gray-600 rounded-2xl mr-2;
+  font-size: 16px; /* Prevent zoom on iOS */
+}
+
+.chatbot-input button {
+  @apply bg-blue-500 dark:bg-blue-600 text-white border-0 rounded-2xl w-10 h-10 flex items-center justify-center cursor-pointer;
+}
+
+.message-user {
+  @apply bg-blue-500 dark:bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none mb-2 max-w-[80%] self-end;
+}
+
+.message-bot {
+  @apply bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded-2xl rounded-tl-none mb-2 max-w-[80%] self-start shadow-sm;
+}
+
+/* Bottom navigation bar for mobile */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  @apply bg-white dark:bg-gray-900 border-t-2 border-gray-200 dark:border-gray-800 py-2 px-4 flex justify-around z-50;
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+
+.bottom-nav-item {
+  @apply flex flex-col items-center p-2 rounded-xl transition-all;
+  min-width: clamp(60px, 15vw, 80px);
+}
+
+.bottom-nav-item.active {
+  @apply bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400;
+}
+
+.bottom-nav-icon {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  margin-bottom: 4px;
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+.bottom-nav-label {
+  font-size: clamp(0.625rem, 2.5vw, 0.75rem);
+  @apply font-medium text-gray-600 dark:text-gray-400;
+}
+
+.bottom-nav-item.active .bottom-nav-icon,
+.bottom-nav-item.active .bottom-nav-label {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: clamp(24px, 6vw, 40px);
+  right: clamp(24px, 6vw, 40px);
+  width: clamp(56px, 12vw, 72px);
+  height: clamp(56px, 12vw, 72px);
+  border-radius: 50%;
+  @apply bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600 text-white flex items-center justify-center shadow-xl z-40 transition-all;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  @apply shadow-2xl;
+}
+
+.fab-icon {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+
+/* Offline indicator */
+.offline-indicator {
+  position: fixed;
+  top: clamp(16px, 4vw, 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  @apply bg-red-500 dark:bg-red-600 text-white py-2 px-4 rounded-full font-semibold text-sm flex items-center gap-2 z-50 shadow-lg;
+  max-width: calc(100vw - 2rem);
+}
+
+.offline-indicator-icon {
+  font-size: 1rem;
+}
+
+/* Responsive modal improvements */
+.modal-responsive {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: min(600px, calc(100vw - 2rem));
+  margin: 0 auto;
+  @apply bg-white dark:bg-gray-800 rounded-2xl shadow-xl;
+  max-height: calc(100vh - 4rem);
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+}
+
+/* Improved form responsiveness */
+.form-responsive {
+  display: grid;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.form-responsive .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-responsive input,
+.form-responsive textarea,
+.form-responsive select {
+  width: 100%;
+  padding: clamp(0.75rem, 3vw, 1rem);
+  border-radius: 0.75rem;
+  border: 2px solid #e5e7eb;
+  font-size: 16px; /* Prevent zoom on iOS */
+}
+
+.form-responsive label {
+  font-weight: 600;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  @apply text-gray-700 dark:text-gray-300;
+}
+
+/* Button group responsiveness */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 3vw, 1rem);
+}
+
+@media (min-width: 640px) {
+  .button-group {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* Grid responsiveness improvements */
+.grid-responsive {
+  display: grid;
+  gap: clamp(1rem, 4vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+/* Card responsiveness */
+.card-responsive {
+  @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden;
+  transition: all 0.3s ease;
+}
+
+.card-responsive:hover {
+  @apply shadow-xl transform -translate-y-1;
+}
+
+.card-responsive .card-header {
+  @apply p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700;
+}
+
+.card-responsive .card-body {
+  @apply p-4 sm:p-6;
+}
+
+.card-responsive .card-footer {
+  @apply p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900;
+}
+
+/* Table responsiveness */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 600px;
+  width: 100%;
+}
+
+/* Navigation responsiveness */
+.nav-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+.nav-responsive .nav-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 900;
+}
+
+.nav-responsive .nav-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  align-items: center;
+}
+
+/* Header responsiveness improvements */
+.header-responsive {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  @apply bg-white dark:bg-gray-900 shadow-lg;
+  padding: clamp(0.75rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+}
+
+.header-responsive .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: clamp(1rem, 4vw, 2rem);
+}
+
+.header-responsive .header-actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  flex-wrap: wrap;
+}
+
+/* Dashboard layout responsiveness */
+.dashboard-layout {
+  display: grid;
+  gap: clamp(1rem, 4vw, 2rem);
+  padding: clamp(1rem, 4vw, 2rem);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  grid-column: 1 / -1;
+}
+
+.dashboard-sidebar {
+  display: none;
+}
+
+.dashboard-main {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 280px 1fr;
+    grid-template-areas: 
+      "sidebar header"
+      "sidebar main";
+  }
+  
+  .dashboard-header {
+    grid-area: header;
+  }
+  
+  .dashboard-sidebar {
+    display: block;
+    grid-area: sidebar;
+  }
+  
+  .dashboard-main {
+    grid-area: main;
+  }
+}
+
+/* Stats grid responsiveness */
+.stats-grid {
+  display: grid;
+  gap: clamp(1rem, 4vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+}
+
+/* Action buttons responsiveness */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 3vw, 1rem);
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .action-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .action-buttons .primary-actions {
+    display: flex;
+    gap: clamp(0.75rem, 3vw, 1rem);
+  }
+  
+  .action-buttons .secondary-actions {
+    display: flex;
+    gap: clamp(0.5rem, 2vw, 0.75rem);
+  }
+}
+
+/* Content area responsiveness */
+.content-area {
+  padding: clamp(1rem, 4vw, 2rem);
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.content-area h1 {
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  margin-bottom: clamp(1rem, 4vw, 2rem);
+}
+
+.content-area h2 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  margin-bottom: clamp(0.75rem, 3vw, 1.5rem);
+}
+
+.content-area h3 {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+}
+
+.content-area p {
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  line-height: 1.6;
+  margin-bottom: clamp(0.75rem, 3vw, 1rem);
+}
+
+/* Ensure all containers are responsive */
+.container,
+.container-fluid {
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: hidden;
+}
+
+/* Fix any potential overflow issues */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure proper spacing on all screen sizes */
+.section {
+  padding: clamp(2rem, 8vw, 6rem) clamp(1rem, 4vw, 2rem);
+}
+
+.section-sm {
+  padding: clamp(1rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
+}
+
+.section-lg {
+  padding: clamp(3rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem);
+}

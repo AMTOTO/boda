@@ -1,0 +1,77 @@
+Fix Loan Features in ParaBoda React + Tailwind App
+
+I have a React + TypeScript + Tailwind (Vite) web application for the ParaBoda Health Ecosystem (with MSUPU wallet).
+
+Several issues need to be fixed in the loan system.
+
+Please do the following:
+
+SHA Loan Request Button
+
+The "Request SHA Loan" button inside the Loan Request section is not functioning.
+
+Ensure it opens the SHA Loan Request Form/Page (SHALoanRequestForm or /sha-loan-request).
+
+Validate inputs before submission.
+
+Credit Report Page Buttons
+
+On the View Credit Report page, none of the action buttons are working.
+
+Fix all event handlers so that they properly:
+
+Fetch/display loan history.
+
+Navigate to loan repayment if applicable.
+
+Close modals when expected.
+
+Apply for Loan Section
+
+The Apply for Loan button should open the MedicalLoanOptions modal.
+
+Ensure loan types can be selected (Emergency, ANC, Delivery, Maternal Health, Transport, SHA).
+
+Fix the flow so selecting a loan type opens the LoanApplicationForm.
+
+Make Loan Payment Section
+
+Currently, some loans are missing from the dropdown/list when choosing which loan to repay.
+
+Fix it so all active loans appear, including SHA loans.
+
+When making a payment, deduct from the correct loan balance.
+
+Add SHA Loan Repayment option with the same logic.
+
+Loan Amount Cap
+
+All loan requests (including SHA, Medical, Transport, etc.) must be capped at KES 10,000 maximum.
+
+Validate this in the frontend form (disable submit if > 10,000).
+
+Show error message: "Loan requests cannot exceed KES 10,000."
+
+General Improvements
+
+Ensure all buttons have proper onClick handlers and are not silently failing.
+
+Add loading and error states for loan submission and repayment.
+
+Ensure UI updates after loan actions (refresh loan list, balances, repayments).
+
+Deliverables
+
+Fixed Loan Request flow (all categories + SHA).
+
+Working SHA Loan Request button.
+
+Functional Credit Report page buttons.
+
+Functional Apply for Loan section.
+
+Fixed Loan Payment (all loans listed, repayment applied correctly).
+
+Added SHA Loan repayment option.
+
+Enforced KES 10,000 max loan limit across all loan forms.

@@ -1,0 +1,83 @@
+I have a React + TypeScript + Tailwind (Vite) web app for the ParaBoda Health Ecosystem. The MSUPU Wallet (CommunityDashboard and Loan modules) has several bugs and missing features.
+
+Please update the code as follows:
+
+1. Fix Non-Functional Buttons
+
+SHA Loan Request Button
+
+In the Loan Request section → make the "Request SHA Loan" button open the SHALoanRequestForm.
+
+Restrict SHA loans to annual SHA subscription only.
+
+View Credit Report Page
+
+Ensure "View Credit Report" opens CreditReportModal with functional tabs/buttons (e.g., Loan History, Active Loans).
+
+Add sample data if backend isn’t connected.
+
+Apply for Loan Section
+
+Ensure "Apply for Loan" opens MedicalLoanOptions.
+
+After selecting a loan type, open LoanApplicationForm with prefilled loan type.
+
+Enforce loan amount validation: max = Ksh 10,000.
+
+Loan Payment Feature
+
+Ensure LoanPaymentForm lists all active loans (including SHA loans).
+
+Allow repayments only up to the outstanding balance.
+
+Loan History, Add Savings, Rewards, etc.
+
+Make all currently static buttons (Loan History, Add Savings, etc.) open their respective modals or pages.
+
+2. SHA Loan Enhancements
+
+SHA Loan should only be available for paying the annual subscription.
+
+In SHALoanRequestForm:
+
+Loan type = "SHA Contribution Loan" (locked).
+
+Max amount = Ksh 10,000.
+
+Add repayment plan (monthly/quarterly) field for SHA repayment.
+
+SHA loan repayment option must appear inside LoanPaymentForm when caregiver has an active SHA loan.
+
+3. Loan Amount Restriction
+
+Globally enforce max loan amount = Ksh 10,000 across all loan application forms.
+
+Show validation error if user enters > 10,000.
+
+4. Responsive & Accessible Buttons
+
+All buttons in MSUPU Wallet Overview + Dashboard must:
+
+Have aria-label for accessibility.
+
+Be responsive (min-h-[48px], px-4 py-2).
+
+Use Tailwind hover + active states (e.g., hover:scale-105, active:scale-95).
+
+5. Deliverables
+
+Updated CommunityDashboard.tsx with all fixed button handlers.
+
+Updated modals/forms:
+
+LoanApplicationForm.tsx (loan cap 10,000).
+
+LoanPaymentForm.tsx (include SHA loans).
+
+SHALoanRequestForm.tsx (restricted loan type).
+
+CreditReportModal.tsx (functional buttons).
+
+AddSavingsForm.tsx (fully functional).
+
+Ensure all wallet actions (Apply for Loan, Add Savings, Loan Repayment, View Credit Report, Request SHA Loan) are working and responsive.

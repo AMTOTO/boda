@@ -1,0 +1,124 @@
+Enhance the existing MSUPU wallet within the ParaBoda Health Ecosystem web application (React + TypeScript + Tailwind + Vite) by:
+
+Integrating new loan features (medical + transport-focused).
+
+Making existing wallet actions functional (Apply for Loan, Add Savings, Add Loan Payment).
+
+Ensuring all features (existing + new) appear consistently in both the MSUPU Wallet Overview and the Dashboard.
+
+Instructions for Code Integration
+1. Tailwind Design System Updates
+
+Extend tailwind.config.js:
+
+New color tokens (loan categories, health/transport indicators).
+
+Extended typography for section titles & buttons.
+
+Consistent rounded-lg / shadow-md tokens for cards.
+
+2. Loan Feature Add-On (Medical + Transport Loans)
+
+In /src/components/wallet/loans/, create:
+
+MedicalLoanOptions.tsx
+
+Displays loan categories as clickable cards:
+
+Emergency Assistance
+
+Antenatal Care (ANC)
+
+Delivery Support
+
+Maternal Health Services
+
+Transport to Care Facilities
+
+Each card triggers a modal/form to start the loan application flow.
+
+LoanApplicationForm.tsx
+
+Dynamic form component with:
+
+Loan type selection (from above categories).
+
+Loan amount field.
+
+Purpose description (optional).
+
+Submit button → triggers backend call.
+
+3. Wallet Overview & Dashboard Integration
+
+In /src/pages/Dashboard.tsx and /src/pages/WalletOverview.tsx:
+
+Add a "Loans" section that lists both:
+
+Current active loans (with status: pending, approved, repaid).
+
+Shortcut buttons for Apply for Loan (linked to MedicalLoanOptions).
+
+Display savings balance + loan eligibility score (from Credit Profiles).
+
+4. Fix Non-Functional Buttons
+
+Apply for Loan
+
+Connect to MedicalLoanOptions.tsx.
+
+Add Savings
+
+Trigger a modal with AddSavingsForm.tsx → submit to /savings API endpoint.
+
+Add Loan Payment
+
+Create LoanPaymentForm.tsx → select active loan + amount → submit to /loans/payment API endpoint.
+
+All buttons should now:
+
+Open the proper modal.
+
+Validate inputs.
+
+Call backend API with error handling + loading states.
+
+5. Accessibility & UX Enhancements
+
+All new buttons: aria-label + role="button".
+
+Minimum button size: min-h-[48px] px-4.
+
+High-contrast color for medical loans (e.g., bg-red-500 text-white).
+
+Multilingual labels (connect to i18n.ts if already implemented).
+
+6. Deliverables
+
+New components:
+
+MedicalLoanOptions.tsx
+
+LoanApplicationForm.tsx
+
+LoanPaymentForm.tsx
+
+AddSavingsForm.tsx
+
+Updated:
+
+Dashboard.tsx
+
+WalletOverview.tsx
+
+tailwind.config.js (with new tokens)
+
+Fixed button logic for:
+
+Apply for Loan
+
+Add Savings
+
+Add Loan Payment
+
+Short README.md describing new components, where they are integrated, and how to extend loan categories in the future.

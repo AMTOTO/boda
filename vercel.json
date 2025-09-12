@@ -1,0 +1,27 @@
+{
+  "rewrites": [
+    { "source": "/admin", "destination": "/" },
+    { "source": "/admin/:path*", "destination": "/" },
+    { "source": "/chv", "destination": "/" },
+    { "source": "/chv/:path*", "destination": "/" },
+    { "source": "/health-worker", "destination": "/" },
+    { "source": "/health-worker/:path*", "destination": "/" },
+    { "source": "/caregiver", "destination": "/" },
+    { "source": "/caregiver/:path*", "destination": "/" },
+    { "source": "/rider", "destination": "/" },
+    { "source": "/rider/:path*", "destination": "/" }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}

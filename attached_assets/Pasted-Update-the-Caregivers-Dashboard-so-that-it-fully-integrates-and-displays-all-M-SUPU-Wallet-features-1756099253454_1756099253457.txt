@@ -1,0 +1,99 @@
+Update the Caregivers’ Dashboard so that it fully integrates and displays all M-SUPU Wallet features in the Overview section. Make non-functional buttons active, and add new functionality for caregivers to register and contribute to the Social Health Insurance Fund (SHA).
+
+Instructions for Code Integration
+
+Replicate MSUPU Wallet in Caregivers’ Dashboard
+
+Ensure the Overview section of the Caregivers’ Dashboard includes all MSUPU Wallet features:
+
+Savings balance
+
+Loan history + active loans
+
+Credit profile summary
+
+Apply for Loan option
+
+Add Savings
+
+Loan Repayment
+
+Display these using consistent Tailwind-styled cards or a grid layout.
+
+Ensure styling is aligned with tailwind.config.js tokens (colors, spacing, radius).
+
+Fix Non-Functional Buttons
+
+View Credit Report → Open modal or navigate to a dedicated /credit-report route. Display:
+
+Credit score summary
+
+Loan repayment history
+
+Eligibility/trust indicators
+
+Apply for Loan → Link to existing loan flow (LoanApplicationForm). Allow selection of loan type (emergency, ANC, delivery, maternal health, transport).
+
+New Feature – SHA Contributions & Loans
+
+Add SHA Card in Overview with two options:
+
+Register & Contribute with Savings
+
+Deduct contribution directly from caregiver’s community wallet balance.
+
+Request Loan for SHA Registration
+
+Open loan modal pre-tagged as “SHA Contribution Loan.”
+
+Create new components in /src/components/wallet/sha/:
+
+SHAContributionForm.tsx → handles registration + savings deduction.
+
+SHALoanRequestForm.tsx → loan request tied specifically to SHA costs.
+
+Integration & UX
+
+Update /src/pages/CaregiverDashboard.tsx to import and render:
+
+CreditProfileCard
+
+LoanApplicationForm
+
+SHAContributionForm
+
+SHALoanRequestForm
+
+Place MSUPU features prominently in the Overview grid, above secondary sections.
+
+Ensure all forms handle validation + API submission (with loading/error states).
+
+Accessibility & Inclusivity
+
+Add aria-label for all interactive elements.
+
+Ensure minimum tap/click target (min-h-[48px]).
+
+Pair icons with text (low literacy support).
+
+Provide multilingual labels (integrate with existing i18n.ts).
+
+Deliverables
+
+Updated CaregiverDashboard.tsx with full MSUPU Wallet Overview.
+
+Functional buttons:
+
+View Credit Report
+
+Apply for Loan
+
+New components:
+
+SHAContributionForm.tsx
+
+SHALoanRequestForm.tsx
+
+Updated tailwind.config.js with new tokens for SHA categories.
+
+README update explaining SHA integration and loan tagging for health services.
