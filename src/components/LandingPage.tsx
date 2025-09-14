@@ -27,6 +27,7 @@ import {
   Phone,
   Mail,
   ChevronDown,
+  ChevronDown,
   Wallet,
   Sun,
   Moon
@@ -220,18 +221,12 @@ export const LandingPage: React.FC = () => {
                 />
               </div>
               <div>
-                <h1 className="text-xl lg:text-2xl font-black text-gray-900">ParaBoda</h1>
-                <p className="text-xs lg:text-sm text-green-600 font-bold">
-          <section className="py-12 lg:py-16 glass-effect relative">
-                </p>
-              </div>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
-                <div className="text-4xl lg:text-6xl mb-4 lg:mb-6 emoji-2xl animate-dance-african">🏥</div>
               <div className="relative">
-                  {language === 'sw' ? 'Chagua Dashibodi Yako' : 'Choose Your Dashboard'}
+                <button
                   onClick={() => setShowDashboardDropdown(!showDashboardDropdown)}
                   className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-bold transition-colors px-4 lg:px-6 py-3 lg:py-4 rounded-2xl hover:bg-yellow-100 text-lg lg:text-xl"
                 >
@@ -239,14 +234,13 @@ export const LandingPage: React.FC = () => {
                   <span>{language === 'sw' ? 'Dashibodi' : 'Dashboards'}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 lg:gap-8">
+
                 {showDashboardDropdown && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 min-w-[300px]"
-                    whileHover={{ y: -10, scale: 1.05 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all group"
+                  >
                     {dashboardPreviews.map((dashboard) => (
                       <Link
                         key={dashboard.path}
@@ -435,36 +429,41 @@ export const LandingPage: React.FC = () => {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 lg:gap-8">
             {dashboardPreviews.map((dashboard, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
-                className="icon-heavy-card animate-glow-african"
+                whileHover={{ y: -10, scale: 1.05 }}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all group"
               >
                 <div className="text-center">
-                  <div className="text-4xl lg:text-6xl mb-3 lg:mb-4 emoji-xl animate-bounce-gentle">
-                    {dashboard.kenyanIcon}
+                  <div className="text-5xl lg:text-6xl mb-4 lg:mb-6 emoji-xl animate-bounce-gentle">
+                    {dashboard.emoji}
                   </div>
                   <div className={`w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-${dashboard.color}-400 to-${dashboard.color}-600 rounded-2xl flex items-center justify-center mb-3 lg:mb-4 mx-auto shadow-xl`}>
                     <dashboard.icon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                   </div>
-                  <h3 className="text-lg lg:text-xl font-black text-gray-900 mb-2 lg:mb-3">
-                    {dashboard.subtitle}
+                  <h3 className="text-xl lg:text-2xl font-black text-gray-900 dark:text-white mb-2 lg:mb-3">
+                    {dashboard.title}
                   </h3>
-                  <p className="text-sm lg:text-base text-gray-600 mb-3 lg:mb-4 font-bold leading-relaxed">
+                  <h4 className="text-sm lg:text-base font-bold text-gray-600 dark:text-gray-400 mb-3 lg:mb-4">
+                    {dashboard.subtitle}
+                  </h4>
+                  <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-4 lg:mb-6 font-bold leading-relaxed">
                     {dashboard.description}
                   </p>
                   
                   <Link
                     to={dashboard.path}
-                    className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-2 lg:py-3 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-base lg:text-lg flex items-center justify-center space-x-2 lg:space-x-3 shadow-xl group-hover:scale-105`}
+                    className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-3 lg:py-4 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-base lg:text-lg flex items-center justify-center space-x-2 lg:space-x-3 shadow-xl group-hover:scale-105`}
                   >
                     <span className="text-lg lg:text-xl">👆</span>
-                      <div className="text-5xl lg:text-6xl mb-4 lg:mb-6 emoji-xl animate-bounce-gentle">
-                        {dashboard.emoji}
+                    <span>{language === 'sw' ? 'INGIA' : 'ENTER'}</span>
+                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
+                  </Link>
                 </div>
               </motion.div>
             ))}
@@ -546,23 +545,19 @@ export const LandingPage: React.FC = () => {
               <div className="icon-heavy-card">
                 <Phone className="w-8 h-8 text-green-600 mx-auto mb-3" />
                 <h3 className="font-bold text-gray-900 mb-2">
-                      <h3 className="text-xl lg:text-2xl font-black text-gray-900 dark:text-white mb-2 lg:mb-3">
-                        {dashboard.title}
+                  {language === 'sw' ? 'Simu' : 'Phone'}
+                </h3>
                 <p className="text-green-600 font-bold">+254 700 123 456</p>
-                      <h4 className="text-sm lg:text-base font-bold text-gray-600 dark:text-gray-400 mb-3 lg:mb-4">
-                        {dashboard.subtitle}
-                      </h4>
               </div>
               <div className="icon-heavy-card">
                 <Mail className="w-8 h-8 text-blue-600 mx-auto mb-3" />
                 <h3 className="font-bold text-gray-900 mb-2">
                   {language === 'sw' ? 'Barua Pepe' : 'Email'}
                 </h3>
-                        className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-3 lg:py-4 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-base lg:text-lg flex items-center justify-center space-x-2 lg:space-x-3 shadow-xl group-hover:scale-105`}
+                <p className="text-blue-600 font-bold">info@paraboda.co.ke</p>
               </div>
               <div className="icon-heavy-card">
                 <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-                        <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
                 <h3 className="font-bold text-gray-900 mb-2">
                   {language === 'sw' ? 'Mahali' : 'Location'}
                 </h3>

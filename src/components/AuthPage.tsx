@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useVoiceCommand } from '../contexts/VoiceCommandContext';
 import { LanguageSelector } from './common/LanguageSelector';
 import { QRScanner } from './common/QRScanner';
 import { 
