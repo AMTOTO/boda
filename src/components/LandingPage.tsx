@@ -25,7 +25,7 @@ import {
   CheckCircle,
   Home,
   Phone,
-  Mail
+  Mail,
   ChevronDown,
   Wallet,
   Sun,
