@@ -1,826 +1,903 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Header } from '../common/Header';
-import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useData } from '../../contexts/DataContext';
-import { useCurrency } from '../../contexts/CurrencyContext';
-import { EmergencyReportModal } from '../common/EmergencyReportModal';
+import { StatsCard } from '../common/StatsCard';
+import { Modal } from '../common/Modal';
+import { ToastContainer } from '../common/Toast';
 import { ServiceRequestModal } from '../common/ServiceRequestModal';
+import { CameraCapture } from '../common/CameraCapture';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { BSenseAI } from '../common/BSenseAI';
-import { QRScanner } from '../common/QRScanner';
-import { CreditProfileCard } from '../wallet/CreditProfileCard';
-import { CreditCoachChat } from '../wallet/CreditCoachChat';
-import { MedicalLoanOptions, LoanApplicationForm, LoanPaymentForm } from '../wallet/loans';
-import { AddSavingsForm } from '../wallet/AddSavingsForm';
-import { RewardsModal } from '../common/RewardsModal';
 import { 
   Home, 
-  AlertTriangle, 
-  Brain, 
-  QrCode,
+  Users, 
+  Heart, 
+  AlertTriangle,
+  Activity,
+  TrendingUp,
   CheckCircle,
-  XCircle,
-  Plus,
-  Eye,
+  Clock,
   MapPin,
-  Users,
-  Heart,
-  Wallet,
-  DollarSign,
-  PiggyBank,
-  Award,
+  Phone,
+  MessageSquare,
+  Plus,
+  Star,
   Target,
-  X
+  Zap,
+  Bell,
+  Eye,
+  Camera,
+  Mic,
+  Upload,
+  Send,
+  Stethoscope,
+  Shield,
+  Calendar,
+  FileText,
+  Navigation,
+  Compass,
+  Battery,
+  Signal,
+  Wifi,
+  Volume2,
+  Brain,
+  UserCheck,
+  Baby,
+  Thermometer,
+  Scale,
+  Award,
+  DollarSign,
+  Package,
+  Gift,
+  Bike,
+  Route,
+  Timer,
+  Settings,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  Download,
+  Share2
 } from 'lucide-react';
-
-interface Household {
-  id: string;
-  name: string;
-  location: string;
-  members: number;
-  adults: number;
-  children: number;
-  pregnantWomen: number;
-  childrenUnder5: number;
-  status: 'active' | 'priority' | 'mch_due';
-  notes?: string;
-  lastVisit?: Date;
-  nextVisit?: Date;
-}
-
-interface TransportRequest {
-  id: string;
-  patientName: string;
-  pickup: string;
-  destination: string;
-  distance: number;
-  cost: number;
-  urgency: 'low' | 'medium' | 'high';
-  status: 'pending' | 'approved' | 'rejected';
-  requestedBy: string;
-  timestamp: Date;
-}
 
 export const CHVDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { language } = useLanguage();
-  const { formatAmount } = useCurrency();
-  const { addNotification, communityFunds } = useData();
+  const { 
+    households, 
+    rideRequests, 
+    healthAlerts, 
+    mythReports, 
+    addHousehold, 
+    updateHousehold,
+    addRideRequest,
+    addHealthAlert, 
+    addMythReport,
+    updateRideRequest,
+    updateHealthAlert,
+    communityFunds,
+    addToMSupu
+  } = useData();
   
-  // Modal states
-  const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [emergencyType, setEmergencyType] = useState<'medical' | 'accident' | 'outbreak' | 'weather'>('medical');
-  const [selectedLoanType, setSelectedLoanType] = useState<string>('');
-  const [showCreditCoach, setShowCreditCoach] = useState(false);
+  const { t, language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraContext, setCameraContext] = useState<'household' | 'alert' | 'myth' | 'transport'>('household');
+  const [showAddHouseholdModal, setShowAddHouseholdModal] = useState(false);
+  const [showMythModal, setShowMythModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showParabodaAI, setShowParabodaAI] = useState(false);
+  const [selectedHousehold, setSelectedHousehold] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'priority' | 'mch_due'>('all');
   
-  // CHV data - higher allocation due to community leadership role
-  const userPoints = user?.points || 500;
-  const walletData = {
-    balance: Math.floor(communityFunds * 0.15), // 15% allocation for CHVs
-    savings: Math.floor(communityFunds * 0.12),
-    creditScore: Math.min(850, 400 + (userPoints * 1.6)), // Higher base for CHVs
-    eligibilityStatus: user?.level === 'Gold' ? 'approved' : user?.level === 'Silver' ? 'approved' : 'pending',
-    loanReadiness: Math.min(100, 65 + userPoints / 7),
-    trustLevel: user?.level === 'Platinum' ? 'platinum' : user?.level === 'Gold' ? 'gold' : 'silver'
-  };
-  
-  // Mock households data
-  const [households, setHouseholds] = useState<Household[]>([
-    {
-      id: 'hh_001',
-      name: 'Wanjiku Family',
-      location: 'Kiambu Village, Zone A',
-      members: 5,
-      adults: 2,
-      children: 3,
-      pregnantWomen: 1,
-      childrenUnder5: 2,
-      status: 'active',
-      lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      nextVisit: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: 'hh_002',
-      name: 'Mwangi Family',
-      location: 'Nakuru West, Zone C',
-      members: 4,
-      adults: 2,
-      children: 2,
-      pregnantWomen: 0,
-      childrenUnder5: 1,
-      status: 'priority',
-      notes: 'Child vaccination overdue, malnutrition risk detected',
-      lastVisit: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-    }
-  ]);
+  const [toasts, setToasts] = useState<Array<{ id: string; title: string; message: string; type: 'success' | 'warning' | 'error' | 'info' }>>([]);
 
-  // Mock transport requests
-  const [transportRequests, setTransportRequests] = useState<TransportRequest[]>([
-    {
-      id: 'tr_001',
-      patientName: 'Grace Wanjiku',
-      pickup: 'Kiambu Village',
-      destination: 'Kiambu Hospital',
-      distance: 8,
-      cost: 820, // 500 base + 8km * 40
-      urgency: 'high',
+  const showToast = (title: string, message: string, type: 'success' | 'warning' | 'error' | 'info') => {
+    const id = `toast_${Date.now()}`;
+    setToasts(prev => [...prev, { id, title, message, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const tabs = [
+    { id: 'overview', name: t('nav.overview'), icon: Activity, emoji: '📊' },
+    { id: 'households', name: t('nav.households'), icon: Home, emoji: '🏠' },
+    { id: 'transport', name: t('nav.transport'), icon: Bike, emoji: '🏍️' },
+    { id: 'alerts', name: t('nav.alerts'), icon: AlertTriangle, emoji: '🚨' },
+    { id: 'myths', name: t('nav.myths'), icon: Shield, emoji: '🛡️' },
+    { id: 'wallet', name: t('nav.wallet'), icon: DollarSign, emoji: '💰' },
+    { id: 'reports', name: t('nav.reports'), icon: FileText, emoji: '📋' }
+  ];
+
+  // Filter households based on search and status
+  const filteredHouseholds = households.filter(household => {
+    const matchesSearch = household.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         household.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || household.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
+
+  // CHV Statistics
+  const chvStats = {
+    totalHouseholds: households.length,
+    priorityHouseholds: households.filter(h => h.status === 'priority').length,
+    mchDue: households.filter(h => h.status === 'mch_due').length,
+    visitsDue: households.filter(h => h.nextVisit && new Date(h.nextVisit) <= new Date()).length,
+    totalMembers: households.reduce((sum, h) => sum + h.members, 0),
+    childrenUnder5: households.reduce((sum, h) => sum + h.childrenUnder5, 0),
+    pregnantWomen: households.reduce((sum, h) => sum + h.pregnantWomen, 0)
+  };
+
+  const handleServiceRequest = (serviceData: any) => {
+    addRideRequest({
+      type: serviceData.serviceId,
+      patientName: serviceData.patientName,
+      pickup: serviceData.pickupLocation,
+      destination: serviceData.destination,
+      urgency: serviceData.urgency,
       status: 'pending',
-      requestedBy: 'Caregiver Mary',
-      timestamp: new Date()
-    }
-  ]);
+      requestedBy: user?.name || 'CHV',
+      cost: serviceData.estimatedCost || 500,
+      notes: serviceData.additionalNotes
+    });
 
-  const getHouseholdStatusColor = (status: string) => {
-    switch (status) {
-      case 'priority': return 'bg-red-100 text-red-800 border-red-300';
-      case 'mch_due': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-green-100 text-green-800 border-green-300';
-    }
-  };
-
-  const handleApproveRequest = (requestId: string, approved: boolean) => {
-    setTransportRequests(prev => 
-      prev.map(req => 
-        req.id === requestId 
-          ? { ...req, status: approved ? 'approved' : 'rejected' }
-          : req
-      )
+    setShowServiceModal(false);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ombi la usafiri limewasilishwa' : 'Transport request submitted',
+      'success'
     );
+  };
+
+  const handleApproveTransport = (requestId: string) => {
+    updateRideRequest(requestId, { status: 'approved' });
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Usafiri umeidhinishwa' : 'Transport approved',
+      'success'
+    );
+  };
+
+  const handleReportMyth = () => {
+    const mythData = {
+      category: 'general',
+      content: 'Sample myth report from CHV',
+      location: user?.location || 'Unknown',
+      reportedBy: user?.name || 'CHV',
+      verified: false,
+      debunked: false
+    };
+
+    addMythReport(mythData);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ripoti ya uwongo imewasilishwa' : 'Myth report submitted',
+      'success'
+    );
+  };
+
+  const handleReportAlert = () => {
+    const alertData = {
+      type: 'disease_outbreak' as const,
+      location: user?.location || 'Unknown',
+      description: 'Health alert reported by CHV',
+      priority: 'medium' as const,
+      reportedBy: user?.name || 'CHV',
+      status: 'new' as const
+    };
+
+    addHealthAlert(alertData);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Tahadhari ya afya imewasilishwa' : 'Health alert submitted',
+      'success'
+    );
+  };
+
+  const handleInvestigateAlert = (alertId: string) => {
+    updateHealthAlert(alertId, { status: 'investigating' });
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Uchunguzi umeanza' : 'Investigation started',
+      'info'
+    );
+  };
+
+  const handleResolveAlert = (alertId: string) => {
+    updateHealthAlert(alertId, { status: 'resolved' });
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Tahadhari imetatuliwa' : 'Alert resolved',
+      'success'
+    );
+  };
+
+  const handleScheduleVisit = (householdId: string) => {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
     
-    addNotification({
-      title: language === 'sw' ? 'Ombi Limesindikizwa' : 'Request Processed',
-      message: language === 'sw' 
-        ? `Ombi la usafiri lime${approved ? 'idhinishwa' : 'kataliwa'}`
-        : `Transport request has been ${approved ? 'approved' : 'rejected'}`,
-      type: approved ? 'success' : 'info',
-      read: false
+    updateHousehold(householdId, { 
+      nextVisit: nextWeek,
+      lastVisit: new Date()
     });
+    
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ziara imepangwa' : 'Visit scheduled',
+      'success'
+    );
   };
 
-  const handleModalClose = () => {
-    setActiveModal(null);
-    setSelectedLoanType('');
-    setShowCreditCoach(false);
+  const handleCameraCapture = (imageData: string, file: File) => {
+    switch (cameraContext) {
+      case 'household':
+        showToast(
+          language === 'sw' ? 'Picha ya Kaya Imehifadhiwa' : 'Household Photo Saved',
+          language === 'sw' ? 'Picha ya kaya imehifadhiwa' : 'Household photo has been saved',
+          'success'
+        );
+        break;
+      case 'alert':
+        showToast(
+          language === 'sw' ? 'Picha ya Tahadhari Imehifadhiwa' : 'Alert Photo Saved',
+          language === 'sw' ? 'Picha ya tahadhari imehifadhiwa' : 'Alert photo has been saved',
+          'success'
+        );
+        break;
+      case 'myth':
+        showToast(
+          language === 'sw' ? 'Picha ya Uwongo Imehifadhiwa' : 'Myth Photo Saved',
+          language === 'sw' ? 'Picha ya uwongo imehifadhiwa' : 'Myth photo has been saved',
+          'success'
+        );
+        break;
+      case 'transport':
+        showToast(
+          language === 'sw' ? 'Picha ya Usafiri Imehifadhiwa' : 'Transport Photo Saved',
+          language === 'sw' ? 'Picha ya usafiri imehifadhiwa' : 'Transport photo has been saved',
+          'success'
+        );
+        break;
+    }
+    setShowCameraModal(false);
   };
 
-  const handleModalSuccess = () => {
-    handleModalClose();
+  const openCamera = (context: 'household' | 'alert' | 'myth' | 'transport') => {
+    setCameraContext(context);
+    setShowCameraModal(true);
   };
 
-  const handleLoanApplication = (loanType: string) => {
-    setSelectedLoanType(loanType);
-    setActiveModal('loanApplication');
-  };
-
-  const handleRewardsRedeem = (item: any) => {
-    addNotification({
-      title: language === 'sw' ? 'Zawadi Imechukuliwa' : 'Reward Redeemed',
-      message: language === 'sw' 
-        ? `Umechukua ${item.nameSwahili || item.name}`
-        : `You redeemed ${item.name}`,
-      type: 'success',
-      read: false
-    });
-    setActiveModal(null);
+  const refreshMSupu = () => {
+    showToast(
+      language === 'sw' ? 'M-Supu Imesasishwa' : 'M-Supu Refreshed',
+      language === 'sw' ? 'Taarifa za M-Supu zimesasishwa' : 'M-Supu information has been refreshed',
+      'info'
+    );
   };
 
   return (
     <div className="min-h-screen dashboard-bg-chv">
       <Header 
-        title={language === 'sw' ? 'CHV' : 'Community Health Volunteer'}
-        subtitle={language === 'sw' ? 'Mjumbe wa afya ya jamii' : 'Community health volunteer'}
+        title={language === 'sw' ? 'Dashibodi ya CHV' : 'CHV Dashboard'}
+        subtitle={language === 'sw' ? `Karibu, ${user?.name}` : `Welcome, ${user?.name}`}
       />
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border-4 border-purple-200">
-            <div className="text-6xl mb-4">❤️</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {language === 'sw' ? `Karibu, ${user?.name}!` : `Welcome, ${user?.name}!`}
-            </h1>
-            <p className="text-lg text-gray-600 font-medium">
-              {language === 'sw' ? `Kaya ${households.length} • Maombi ${transportRequests.length}` : `${households.length} Households • ${transportRequests.length} Requests`}
-            </p>
-            <div className="mt-4 bg-purple-100 rounded-2xl p-4 inline-block">
-              <p className="text-sm text-purple-800 font-semibold">
-                {language === 'sw' ? 'Salio lako' : 'Your balance'}: {formatAmount(walletData.balance)}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Main Action Buttons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Household Management */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            onClick={() => setActiveModal('households')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🏠</div>
-            <Home className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'KAYA' : 'HOUSEHOLDS'}
-              </div>
-              <div className="text-sm opacity-90">
-                {households.length} {language === 'sw' ? 'kaya' : 'households'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Transport Requests */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => setActiveModal('transportRequests')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🚲</div>
-            <Target className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'USAFIRI' : 'TRANSPORT'}
-              </div>
-              <div className="text-sm opacity-90">
-                {transportRequests.filter(r => r.status === 'pending').length} {language === 'sw' ? 'maombi' : 'pending'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Community Alerts */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            onClick={() => setActiveModal('alerts')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-red-500 to-red-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🚨</div>
-            <AlertTriangle className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'TAHADHARI' : 'ALERTS'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Ripoti za jamii' : 'Community reports'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* ParaBoda AI */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => setActiveModal('bsenseAI')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🧠</div>
-            <Brain className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'MSAIDIZI' : 'AI HELPER'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Ushauri wa jamii' : 'Community guidance'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* QR Scanner */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            onClick={() => setActiveModal('qrScanner')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">📱</div>
-            <QrCode className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'SKANI' : 'SCAN'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Skani QR code' : 'Scan QR code'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* M-SUPU Wallet */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            onClick={() => setActiveModal('wallet')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">💰</div>
-            <Wallet className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'M-SUPU' : 'M-SUPU'}
-              </div>
-              <div className="text-sm opacity-90">
-                {formatAmount(walletData.balance)}
-              </div>
-            </div>
-          </motion.button>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title={language === 'sw' ? 'Kaya za Jumla' : 'Total Households'}
+            value={chvStats.totalHouseholds}
+            change={`+${chvStats.totalMembers} members`}
+            changeType="positive"
+            icon={Home}
+            color="purple"
+            delay={0}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Kaya za Kipaumbele' : 'Priority Households'}
+            value={chvStats.priorityHouseholds}
+            change={`${chvStats.visitsDue} visits due`}
+            changeType="warning"
+            icon={AlertTriangle}
+            color="orange"
+            delay={0.1}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Watoto Chini ya Miaka 5' : 'Children Under 5'}
+            value={chvStats.childrenUnder5}
+            change="Health monitoring"
+            changeType="positive"
+            icon={Baby}
+            color="blue"
+            delay={0.2}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Wajawazito' : 'Pregnant Women'}
+            value={chvStats.pregnantWomen}
+            change={`${chvStats.mchDue} MCH due`}
+            changeType="warning"
+            icon={Heart}
+            color="pink"
+            delay={0.3}
+          />
         </div>
 
-        {/* MSUPU Wallet Section for CHVs */}
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2 bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-xl border-4 border-purple-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-purple-100'
+                }`}
+              >
+                <span className="text-xl">{tab.emoji}</span>
+                <tab.icon className="w-5 h-5" />
+                <span className="hidden sm:inline">{tab.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
         <motion.div
+          key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mb-8"
+          transition={{ duration: 0.3 }}
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-            <Wallet className="w-8 h-8 text-emerald-600" />
-            <span>{language === 'sw' ? 'M-SUPU Pochi ya CHV' : 'CHV M-SUPU Wallet'}</span>
-          </h2>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              {/* Quick Actions */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Zap className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</span>
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => setShowAddHouseholdModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 hover:bg-green-100 transition-all"
+                  >
+                    <Plus className="w-8 h-8 text-green-600" />
+                    <span className="font-bold text-green-800 text-center">
+                      {language === 'sw' ? 'Ongeza Kaya' : 'Add Household'}
+                    </span>
+                  </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Credit Profile Card */}
-            <CreditProfileCard
-              creditScore={walletData.creditScore}
-              savingsBalance={walletData.savings}
-              eligibilityStatus={walletData.eligibilityStatus as any}
-              loanReadiness={walletData.loanReadiness}
-              trustLevel={walletData.trustLevel as any}
-            />
+                  <button
+                    onClick={() => setShowServiceModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 hover:bg-blue-100 transition-all"
+                  >
+                    <Bike className="w-8 h-8 text-blue-600" />
+                    <span className="font-bold text-blue-800 text-center">
+                      {language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}
+                    </span>
+                  </button>
 
-            {/* Quick Wallet Actions */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-6 border-4 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
-                {language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}
-              </h3>
+                  <button
+                    onClick={handleReportMyth}
+                    className="flex flex-col items-center space-y-3 p-6 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 hover:bg-purple-100 transition-all"
+                  >
+                    <Shield className="w-8 h-8 text-purple-600" />
+                    <span className="font-bold text-purple-800 text-center">
+                      {language === 'sw' ? 'Ripoti Uwongo' : 'Report Myth'}
+                    </span>
+                  </button>
 
-              <div className="grid grid-cols-1 gap-4">
-                {/* Apply for Loan */}
-                <button
-                  onClick={() => setActiveModal('medicalLoanOptions')}
-                  className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <DollarSign className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Omba Mkopo' : 'Apply for Loan'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Vifaa vya jamii' : 'Community equipment'}</div>
+                  <button
+                    onClick={() => setShowParabodaAI(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-indigo-50 border-2 border-indigo-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-100 transition-all"
+                  >
+                    <Brain className="w-8 h-8 text-indigo-600" />
+                    <span className="font-bold text-indigo-800 text-center">
+                      {language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Activities */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Pending Transport Requests */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                    <Bike className="w-6 h-6 text-purple-500" />
+                    <span>{language === 'sw' ? 'Maombi ya Usafiri' : 'Transport Requests'}</span>
+                  </h3>
+                  <div className="space-y-4">
+                    {rideRequests.filter(req => req.status === 'pending').slice(0, 3).map((request) => (
+                      <div key={request.id} className="border border-gray-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-900">{request.patientName}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            request.urgency === 'high' ? 'bg-red-100 text-red-800' :
+                            request.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {request.urgency}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{request.pickup} → {request.destination}</p>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleApproveTransport(request.id)}
+                            className="flex-1 bg-green-500 text-white py-2 px-3 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
+                          >
+                            {language === 'sw' ? 'Idhinisha' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => openCamera('transport')}
+                            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <Camera className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </button>
+                </div>
 
-                {/* Add Savings */}
-                <button
-                  onClick={() => setActiveModal('addSavings')}
-                  className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <PiggyBank className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Akiba za kibinafsi' : 'Personal savings'}</div>
+                {/* Health Alerts */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                    <AlertTriangle className="w-6 h-6 text-purple-500" />
+                    <span>{language === 'sw' ? 'Tahadhari za Afya' : 'Health Alerts'}</span>
+                  </h3>
+                  <div className="space-y-4">
+                    {healthAlerts.slice(0, 3).map((alert) => (
+                      <div key={alert.id} className="border border-gray-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-900">{alert.type.replace('_', ' ')}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            alert.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                            alert.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {alert.priority}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{alert.description}</p>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleInvestigateAlert(alert.id)}
+                            className="flex-1 bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
+                          >
+                            {language === 'sw' ? 'Chunguza' : 'Investigate'}
+                          </button>
+                          <button
+                            onClick={() => handleResolveAlert(alert.id)}
+                            className="flex-1 bg-green-500 text-white py-2 px-3 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
+                          >
+                            {language === 'sw' ? 'Tatua' : 'Resolve'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </button>
-
-                {/* Credit Coach */}
-                <button
-                  onClick={() => setShowCreditCoach(true)}
-                  className="w-full p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Brain className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Mkocha wa Mkopo' : 'Credit Coach'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Ushauri wa kifedha' : 'Financial advice'}</div>
-                  </div>
-                </button>
-
-                {/* Rewards */}
-                <button
-                  onClick={() => setActiveModal('rewards')}
-                  className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Award className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Zawadi' : 'Rewards'}</div>
-                    <div className="text-sm opacity-90">{userPoints} {language === 'sw' ? 'pointi' : 'points'}</div>
-                  </div>
-                </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Households Tab */}
+          {activeTab === 'households' && (
+            <div className="space-y-6">
+              {/* Search and Filter */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={language === 'sw' ? 'Tafuta kaya...' : 'Search households...'}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as any)}
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="all">{language === 'sw' ? 'Zote' : 'All'}</option>
+                    <option value="active">{language === 'sw' ? 'Hai' : 'Active'}</option>
+                    <option value="priority">{language === 'sw' ? 'Kipaumbele' : 'Priority'}</option>
+                    <option value="mch_due">{language === 'sw' ? 'MCH Inahitajika' : 'MCH Due'}</option>
+                  </select>
+                  <button
+                    onClick={() => setShowAddHouseholdModal(true)}
+                    className="flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-bold"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>{language === 'sw' ? 'Ongeza Kaya' : 'Add Household'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Households List */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Home className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'Kaya' : 'Households'} ({filteredHouseholds.length})</span>
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {filteredHouseholds.map((household) => (
+                    <div key={household.id} className="border border-gray-200 rounded-xl p-6 hover:border-purple-300 transition-colors">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-bold text-gray-900">{household.name}</h4>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                          household.status === 'priority' ? 'bg-red-100 text-red-800' :
+                          household.status === 'mch_due' ? 'bg-orange-100 text-orange-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {household.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Wanakaya' : 'Members'}</p>
+                          <p className="font-bold">{household.members}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Watoto <5' : 'Children <5'}</p>
+                          <p className="font-bold">{household.childrenUnder5}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Wajawazito' : 'Pregnant'}</p>
+                          <p className="font-bold">{household.pregnantWomen}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Ziara Ijayo' : 'Next Visit'}</p>
+                          <p className="font-bold text-sm">
+                            {household.nextVisit 
+                              ? new Date(household.nextVisit).toLocaleDateString()
+                              : 'Not scheduled'
+                            }
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mb-4">{household.location}</p>
+                      
+                      {household.notes && (
+                        <p className="text-gray-700 text-sm mb-4 bg-yellow-50 p-3 rounded-lg">
+                          {household.notes}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleScheduleVisit(household.id)}
+                          className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Panga Ziara' : 'Schedule Visit'}</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => setShowServiceModal(true)}
+                          className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
+                        >
+                          <Bike className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => openCamera('household')}
+                          className="flex items-center space-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Picha' : 'Photo'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Transport Tab */}
+          {activeTab === 'transport' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Bike className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'Usimamizi wa Usafiri' : 'Transport Management'}</span>
+                </h3>
+                <button
+                  onClick={() => setShowServiceModal(true)}
+                  className="flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-bold"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {rideRequests.map((request) => (
+                  <div key={request.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-gray-900">{request.patientName}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          request.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {request.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-green-600">KSh {request.cost}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Kuchukua' : 'Pickup'}</p>
+                        <p className="font-medium">{request.pickup}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Marudio' : 'Destination'}</p>
+                        <p className="font-medium">{request.destination}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Aina' : 'Type'}</p>
+                        <p className="font-medium">{request.type.replace('_', ' ')}</p>
+                      </div>
+                    </div>
+
+                    {request.notes && (
+                      <p className="text-gray-600 text-sm mb-4 bg-gray-50 p-3 rounded-lg">
+                        {request.notes}
+                      </p>
+                    )}
+
+                    <div className="flex space-x-3">
+                      {request.status === 'pending' && (
+                        <button
+                          onClick={() => handleApproveTransport(request.id)}
+                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-bold"
+                        >
+                          {language === 'sw' ? 'Idhinisha' : 'Approve'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => openCamera('transport')}
+                        className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Alerts Tab */}
+          {activeTab === 'alerts' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <AlertTriangle className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'Tahadhari za Afya' : 'Health Alerts'}</span>
+                </h3>
+                <button
+                  onClick={handleReportAlert}
+                  className="flex items-center space-x-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors font-bold"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Ripoti Tahadhari' : 'Report Alert'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {healthAlerts.map((alert) => (
+                  <div key={alert.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-gray-900">{alert.type.replace('_', ' ')}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          alert.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                          alert.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {alert.priority}
+                        </span>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        alert.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                        alert.status === 'investigating' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {alert.status}
+                      </span>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{alert.description}</p>
+                    <p className="text-gray-500 text-sm mb-4">{alert.location}</p>
+
+                    <div className="flex space-x-3">
+                      {alert.status === 'new' && (
+                        <button
+                          onClick={() => handleInvestigateAlert(alert.id)}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors font-bold"
+                        >
+                          {language === 'sw' ? 'Chunguza' : 'Investigate'}
+                        </button>
+                      )}
+                      {alert.status === 'investigating' && (
+                        <button
+                          onClick={() => handleResolveAlert(alert.id)}
+                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-bold"
+                        >
+                          {language === 'sw' ? 'Tatua' : 'Resolve'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => openCamera('alert')}
+                        className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Myths Tab */}
+          {activeTab === 'myths' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Shield className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'Ripoti za Uwongo' : 'Myth Reports'}</span>
+                </h3>
+                <button
+                  onClick={handleReportMyth}
+                  className="flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-bold"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Ripoti Uwongo' : 'Report Myth'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {mythReports.map((myth) => (
+                  <div key={myth.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-gray-900">{myth.category}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          myth.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {myth.verified ? 'Verified' : 'Pending'}
+                        </span>
+                      </div>
+                      {myth.reach && (
+                        <span className="text-sm text-gray-500">Reach: {myth.reach}</span>
+                      )}
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{myth.content}</p>
+                    <p className="text-gray-500 text-sm mb-4">{myth.location}</p>
+
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => openCamera('myth')}
+                        className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Wallet Tab */}
+          {activeTab === 'wallet' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-purple-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <DollarSign className="w-6 h-6 text-purple-500" />
+                  <span>{language === 'sw' ? 'M-Supu ya Jamii' : 'Community M-Supu'}</span>
+                </h3>
+                <button
+                  onClick={refreshMSupu}
+                  className="flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-bold"
+                >
+                  <Activity className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Sasisha' : 'Refresh'}</span>
+                </button>
+              </div>
+              
+              <div className="text-center mb-8">
+                <p className="text-4xl font-bold text-green-600 mb-2">KSh {communityFunds.toLocaleString()}</p>
+                <p className="text-gray-600">
+                  {language === 'sw' ? 'Jumla ya Fedha za Jamii' : 'Total Community Funds'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-6 bg-green-50 rounded-xl">
+                  <h4 className="font-bold text-green-800 mb-2">
+                    {language === 'sw' ? 'Michango ya Fedha' : 'Cash Contributions'}
+                  </h4>
+                  <p className="text-2xl font-bold text-green-600">KSh 8,500</p>
+                </div>
+                <div className="text-center p-6 bg-blue-50 rounded-xl">
+                  <h4 className="font-bold text-blue-800 mb-2">
+                    {language === 'sw' ? 'Michango ya Vitu' : 'Item Contributions'}
+                  </h4>
+                  <p className="text-2xl font-bold text-blue-600">KSh 4,000</p>
+                </div>
+                <div className="text-center p-6 bg-purple-50 rounded-xl">
+                  <h4 className="font-bold text-purple-800 mb-2">
+                    {language === 'sw' ? 'Wachangiaji' : 'Contributors'}
+                  </h4>
+                  <p className="text-2xl font-bold text-purple-600">47</p>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
-      {/* Households Modal */}
-      {activeModal === 'households' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center flex-1">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Home className="w-8 h-8 text-blue-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {language === 'sw' ? 'Kaya Zako' : 'Your Households'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              {households.map((household) => (
-                <div key={household.id} className={`p-6 rounded-2xl border-2 ${getHouseholdStatusColor(household.status)}`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold">{household.name}</h3>
-                      <p className="text-sm opacity-75">{household.location}</p>
-                      <p className="text-sm">
-                        {household.members} {language === 'sw' ? 'wanachama' : 'members'} • 
-                        {household.pregnantWomen} {language === 'sw' ? 'wajawazito' : 'pregnant'} • 
-                        {household.childrenUnder5} {language === 'sw' ? 'watoto <5' : 'children <5'}
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${getHouseholdStatusColor(household.status)}`}>
-                      {household.status === 'priority' ? (language === 'sw' ? 'KIPAUMBELE' : 'PRIORITY') :
-                       household.status === 'mch_due' ? (language === 'sw' ? 'MCH INAHITAJIKA' : 'MCH DUE') :
-                       (language === 'sw' ? 'HAI' : 'ACTIVE')}
-                    </span>
-                  </div>
-                  
-                  {household.notes && (
-                    <div className="bg-white/50 p-3 rounded-lg mb-3">
-                      <p className="text-sm">{household.notes}</p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => console.log('Visit household:', household.id)}
-                      className="min-h-[48px] bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all transform hover:scale-105"
-                    >
-                      {language === 'sw' ? 'TEMBELEA' : 'VISIT'}
-                    </button>
-                    <button
-                      onClick={() => console.log('Update household:', household.id)}
-                      className="min-h-[48px] bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all transform hover:scale-105"
-                    >
-                      {language === 'sw' ? 'SASISHA' : 'UPDATE'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-            >
-              {language === 'sw' ? 'Funga' : 'Close'}
-            </button>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Transport Requests Modal */}
-      {activeModal === 'transportRequests' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center flex-1">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-orange-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {language === 'sw' ? 'Maombi ya Usafiri' : 'Transport Requests'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              {transportRequests.map((request) => (
-                <div key={request.id} className="p-6 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{request.patientName}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{language === 'sw' ? 'Imeombwa na' : 'Requested by'}: {request.requestedBy}</p>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex items-center space-x-2 text-sm">
-                          <MapPin className="w-4 h-4 text-gray-500" />
-                          <span>{request.pickup} → {request.destination}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <DollarSign className="w-4 h-4 text-gray-500" />
-                          <span className="font-semibold text-green-600">{formatAmount(request.cost)}</span>
-                          <span className="text-gray-500">({request.distance}km)</span>
-                        </div>
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      request.urgency === 'high' ? 'bg-red-100 text-red-800' :
-                      request.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {request.urgency === 'high' ? (language === 'sw' ? 'DHARURA' : 'URGENT') :
-                       request.urgency === 'medium' ? (language === 'sw' ? 'WASTANI' : 'MEDIUM') :
-                       (language === 'sw' ? 'CHINI' : 'LOW')}
-                    </span>
-                  </div>
-                  
-                  {request.status === 'pending' && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleApproveRequest(request.id, true)}
-                        className="min-h-[48px] bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                        <span>{language === 'sw' ? 'IDHINISHA' : 'APPROVE'}</span>
-                      </button>
-                      <button
-                        onClick={() => handleApproveRequest(request.id, false)}
-                        className="min-h-[48px] bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
-                      >
-                        <XCircle className="w-5 h-5" />
-                        <span>{language === 'sw' ? 'KATAA' : 'REJECT'}</span>
-                      </button>
-                    </div>
-                  )}
-                  
-                  {request.status !== 'pending' && (
-                    <div className={`text-center py-2 rounded-xl font-bold ${
-                      request.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {request.status === 'approved' 
-                        ? (language === 'sw' ? 'IMEIDHINISHWA' : 'APPROVED')
-                        : (language === 'sw' ? 'IMEKATALIWA' : 'REJECTED')
-                      }
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {transportRequests.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="text-6xl mb-4">🚲</div>
-                  <p className="text-gray-500 text-lg">
-                    {language === 'sw' ? 'Hakuna maombi ya usafiri' : 'No transport requests'}
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-            >
-              {language === 'sw' ? 'Funga' : 'Close'}
-            </button>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Alerts Modal */}
-      {activeModal === 'alerts' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {language === 'sw' ? 'Tahadhari za Jamii' : 'Community Alerts'}
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => {
-                  setEmergencyType('medical');
-                  setActiveModal('emergencyReport');
-                }}
-                className="w-full p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <AlertTriangle className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ripoti Dharura' : 'Report Emergency'}</span>
-              </button>
-              
-              <button
-                onClick={() => {
-                  setEmergencyType('outbreak');
-                  setActiveModal('emergencyReport');
-                }}
-                className="w-full p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <div className="text-2xl">🦠</div>
-                <span className="font-bold text-lg">{language === 'sw' ? 'Mlipuko wa Ugonjwa' : 'Disease Outbreak'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-              >
-                {language === 'sw' ? 'Funga' : 'Close'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Wallet Modal */}
-      {activeModal === 'wallet' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Wallet className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {language === 'sw' ? 'M-Supu Pochi' : 'M-Supu Wallet'}
-              </h2>
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl">
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                  {formatAmount(walletData.balance)}
-                </div>
-                <p className="text-emerald-800 dark:text-emerald-200 font-medium">
-                  {language === 'sw' ? 'Salio Lako' : 'Your Balance'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => setActiveModal('addSavings')}
-                className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <PiggyBank className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('rewards')}
-                className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Award className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Zawadi' : 'Rewards'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('creditReport')}
-                className="w-full p-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl hover:from-indigo-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Eye className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ripoti ya Mkopo' : 'Credit Report'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-              >
-                {language === 'sw' ? 'Funga' : 'Close'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* All Modals */}
-      <EmergencyReportModal
-        isOpen={activeModal === 'emergencyReport'}
-        onClose={() => setActiveModal(null)}
-        onSubmit={(reportData) => {
-          addNotification({
-            title: language === 'sw' ? 'Ripoti ya Dharura Imewasilishwa' : 'Emergency Report Submitted',
-            message: language === 'sw' ? 'Ripoti yako imewasilishwa kwa msimamizi' : 'Your report has been submitted to admin',
-            type: 'warning',
-            read: false
-          });
-          setActiveModal(null);
-        }}
-        emergencyType={emergencyType}
+      {/* Service Request Modal */}
+      <ServiceRequestModal
+        isOpen={showServiceModal}
+        onClose={() => setShowServiceModal(false)}
+        onRequest={handleServiceRequest}
       />
 
+      {/* Camera Modal */}
+      <CameraCapture
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+        title={
+          cameraContext === 'household' ? (language === 'sw' ? 'Piga Picha ya Kaya' : 'Take Household Photo') :
+          cameraContext === 'alert' ? (language === 'sw' ? 'Piga Picha ya Tahadhari' : 'Take Alert Photo') :
+          cameraContext === 'myth' ? (language === 'sw' ? 'Piga Picha ya Uwongo' : 'Take Myth Photo') :
+          (language === 'sw' ? 'Piga Picha ya Usafiri' : 'Take Transport Photo')
+        }
+        context={
+          cameraContext === 'household' ? (language === 'sw' ? 'Piga picha ya kaya' : 'Capture household information') :
+          cameraContext === 'alert' ? (language === 'sw' ? 'Piga picha ya tahadhari ya afya' : 'Capture health alert evidence') :
+          cameraContext === 'myth' ? (language === 'sw' ? 'Piga picha ya uwongo wa kiafya' : 'Capture health misinformation') :
+          (language === 'sw' ? 'Piga picha ya usafiri' : 'Capture transport evidence')
+        }
+      />
+
+      {/* ParaBoda-AI Modal */}
       <BSenseAI
-        isOpen={activeModal === 'bsenseAI'}
-        onClose={() => setActiveModal(null)}
+        isOpen={showParabodaAI}
+        onClose={() => setShowParabodaAI(false)}
         userRole="chv"
       />
 
-      <QRScanner
-        isOpen={activeModal === 'qrScanner'}
-        onClose={() => setActiveModal(null)}
-        onScan={(data) => {
-          console.log('QR Scanned:', data);
-          setActiveModal(null);
-          addNotification({
-            title: language === 'sw' ? 'QR Code Imesomwa' : 'QR Code Scanned',
-            message: language === 'sw' ? 'Taarifa zimepatikana' : 'Information retrieved',
-            type: 'success',
-            read: false
-          });
-        }}
-      />
-
-      <ServiceRequestModal
-        isOpen={activeModal === 'transport'}
-        onClose={() => setActiveModal(null)}
-        onRequest={(serviceData) => {
-          addNotification({
-            title: language === 'sw' ? 'Ombi la Huduma Limewasilishwa' : 'Service Request Submitted',
-            message: language === 'sw' ? 'Ombi lako limewasilishwa' : 'Your request has been submitted',
-            type: 'success',
-            read: false
-          });
-          setActiveModal(null);
-        }}
-      />
-
-      <RewardsModal
-        isOpen={activeModal === 'rewards'}
-        onClose={() => setActiveModal(null)}
-        userPoints={userPoints}
-        onRedeem={handleRewardsRedeem}
-      />
-
-      {/* Wallet Modals */}
-      <MedicalLoanOptions
-        isOpen={activeModal === 'medicalLoanOptions'}
-        onClose={handleModalClose}
-        onLoanSelect={handleLoanApplication}
-      />
-
-      <LoanApplicationForm
-        isOpen={activeModal === 'loanApplication'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        loanType={selectedLoanType}
-      />
-
-      <AddSavingsForm
-        isOpen={activeModal === 'addSavings'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        currentBalance={walletData.balance}
-      />
-
-      <LoanPaymentForm
-        isOpen={activeModal === 'loanPayment'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-      />
-
-      <CreditCoachChat
-        isOpen={showCreditCoach}
-        onClose={() => setShowCreditCoach(false)}
-        userCreditScore={walletData.creditScore}
-        userSavings={walletData.savings}
-      />
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

@@ -1,696 +1,955 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Header } from '../common/Header';
-import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useData } from '../../contexts/DataContext';
-import { useCurrency } from '../../contexts/CurrencyContext';
-import { BSenseAI } from '../common/BSenseAI';
-import { QRScanner } from '../common/QRScanner';
-import { ServiceRequestModal } from '../common/ServiceRequestModal';
+import { StatsCard } from '../common/StatsCard';
 import { Modal } from '../common/Modal';
-import { CreditProfileCard } from '../wallet/CreditProfileCard';
-import { CreditCoachChat } from '../wallet/CreditCoachChat';
-import { MedicalLoanOptions, LoanApplicationForm, LoanPaymentForm } from '../wallet/loans';
-import { AddSavingsForm } from '../wallet/AddSavingsForm';
-import { RewardsModal } from '../common/RewardsModal';
-import { 
-  Users, 
-  Syringe, 
-  Bike, 
-  FileText, 
-  Brain, 
-  QrCode,
-  Plus,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Stethoscope,
-  Baby,
-  Heart,
-  Wallet,
-  Eye,
-  DollarSign,
-  PiggyBank,
-  CreditCard,
-  Award,
-  X
-} from 'lucide-react';
-
-interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  gender: 'male' | 'female';
-  phone?: string;
-  location: string;
-  lastVisit?: Date;
-  nextAppointment?: Date;
-  vaccinationStatus: 'up_to_date' | 'overdue' | 'partial';
-  medicalHistory: string[];
-  emergencyContact?: string;
-}
-
-interface Vaccine {
-  id: string;
-  name: string;
-  batchNumber: string;
-  expiryDate: Date;
-  stockQuantity: number;
-  manufacturer: string;
-  status: 'in_stock' | 'low_stock' | 'expired' | 'out_of_stock';
-}
+import { ToastContainer } from '../common/Toast';
+import { ServiceRequestModal } from '../common/ServiceRequestModal';
+import { CameraCapture } from '../common/CameraCapture';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { BSenseAI } from '../common/BSenseAI';
+import { Stethoscope, Users, Shield, Calendar, Activity, TrendingUp, CheckCircle, Clock, MapPin, Phone, MessageSquare, Plus, Star, Target, Zap, Bell, Eye, Camera, Mic, Upload, Send, Heart, AlertTriangle, FileText, Navigation, Compass, Battery, Signal, Wifi, Volume2, Brain, UserCheck, Baby, Thermometer, Scale, Award, DollarSign, Package, Gift, Bike, Route, Timer, Settings, Edit, Trash2, Search, Filter, Download, Share2, QrCode, Syringe, Pill, Clipboard, UserPlus, BookOpen, Microscope, Ban as Bandage } from 'lucide-react';
 
 export const HealthWorkerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { language } = useLanguage();
-  const { formatAmount } = useCurrency();
-  const { addNotification, communityFunds } = useData();
+  const { 
+    rideRequests, 
+    healthAlerts, 
+    mythReports, 
+    addRideRequest,
+    addHealthAlert, 
+    addMythReport,
+    updateRideRequest
+  } = useData();
   
-  // Modal and tab states
-  const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [selectedLoanType, setSelectedLoanType] = useState<string>('');
-  const [showCreditCoach, setShowCreditCoach] = useState(false);
+  const { t, language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraContext, setCameraContext] = useState<'patient' | 'vaccine' | 'myth' | 'transport' | 'scanner'>('patient');
+  const [showAddPatientModal, setShowAddPatientModal] = useState(false);
+  const [showQRScannerModal, setShowQRScannerModal] = useState(false);
+  const [showParabodaAI, setShowParabodaAI] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
-  // Health worker data - higher allocation due to professional role
-  const userPoints = user?.points || 400;
-  const walletData = {
-    balance: Math.floor(communityFunds * 0.12),
-    savings: Math.floor(communityFunds * 0.10),
-    creditScore: Math.min(850, 450 + (userPoints * 1.8)),
-    eligibilityStatus: user?.level === 'Platinum' ? 'approved' : user?.level === 'Gold' ? 'approved' : 'pending',
-    loanReadiness: Math.min(100, 70 + userPoints / 6),
-    trustLevel: user?.level === 'Platinum' ? 'platinum' : 'gold'
-  };
-  
-  // Health worker data
-  const [patients, setPatients] = useState<Patient[]>([
+  const [toasts, setToasts] = useState<Array<{ id: string; title: string; message: string; type: 'success' | 'warning' | 'error' | 'info' }>>([]);
+
+  // Mock data for health worker
+  const [patients, setPatients] = useState([
     {
-      id: 'pat_001',
-      name: 'Grace Wanjiku',
+      id: '1',
+      name: 'Grace Muthoni',
       age: 28,
-      gender: 'female',
-      phone: '+254712345678',
-      location: 'Kiambu Village',
-      lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      nextAppointment: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      vaccinationStatus: 'up_to_date',
-      medicalHistory: ['Pregnancy - 32 weeks', 'Previous normal delivery'],
-      emergencyContact: '+254723456789'
+      gender: 'Female',
+      condition: 'Pregnancy - ANC',
+      lastVisit: '2024-01-15',
+      nextAppointment: '2024-01-22',
+      status: 'active',
+      notes: 'Second pregnancy, no complications'
     },
     {
-      id: 'pat_002',
+      id: '2',
       name: 'Baby Michael',
-      age: 0,
-      gender: 'male',
-      location: 'Nakuru Town',
-      lastVisit: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      nextAppointment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      vaccinationStatus: 'overdue',
-      medicalHistory: ['Birth weight: 3.2kg', 'BCG vaccine given'],
-      emergencyContact: '+254734567890'
+      age: 0.5,
+      gender: 'Male',
+      condition: 'Vaccination due',
+      lastVisit: '2024-01-10',
+      nextAppointment: '2024-01-20',
+      status: 'vaccine_due',
+      notes: 'Due for 3rd dose of pentavalent vaccine'
+    },
+    {
+      id: '3',
+      name: 'John Kamau',
+      age: 45,
+      gender: 'Male',
+      condition: 'Hypertension',
+      lastVisit: '2024-01-12',
+      nextAppointment: '2024-01-25',
+      status: 'follow_up',
+      notes: 'Blood pressure monitoring required'
     }
   ]);
 
-  const [vaccines, setVaccines] = useState<Vaccine[]>([
+  const [vaccineInventory, setVaccineInventory] = useState([
+    { id: '1', name: 'BCG', stock: 45, expiry: '2024-06-15', status: 'good' },
+    { id: '2', name: 'Pentavalent', stock: 23, expiry: '2024-04-20', status: 'low' },
+    { id: '3', name: 'Polio', stock: 67, expiry: '2024-08-10', status: 'good' },
+    { id: '4', name: 'Measles', stock: 8, expiry: '2024-03-15', status: 'critical' },
+    { id: '5', name: 'Yellow Fever', stock: 34, expiry: '2024-07-22', status: 'good' }
+  ]);
+
+  const [todayAppointments, setTodayAppointments] = useState([
     {
-      id: 'vac_001',
-      name: 'BCG',
-      batchNumber: 'BCG2024001',
-      expiryDate: new Date(2024, 11, 31),
-      stockQuantity: 45,
-      manufacturer: 'Kenya Medical Supplies',
-      status: 'in_stock'
+      id: '1',
+      patientName: 'Grace Muthoni',
+      time: '09:00',
+      type: 'ANC Visit',
+      status: 'pending',
+      notes: 'Routine checkup'
     },
     {
-      id: 'vac_002',
-      name: 'Polio (OPV)',
-      batchNumber: 'OPV2024002',
-      expiryDate: new Date(2024, 8, 15),
-      stockQuantity: 12,
-      manufacturer: 'UNICEF Supply',
-      status: 'low_stock'
+      id: '2',
+      patientName: 'Baby Michael',
+      time: '10:30',
+      type: 'Vaccination',
+      status: 'pending',
+      notes: 'Pentavalent 3rd dose'
+    },
+    {
+      id: '3',
+      patientName: 'John Kamau',
+      time: '14:00',
+      type: 'Follow-up',
+      status: 'completed',
+      notes: 'Blood pressure check'
     }
   ]);
+
+  const showToast = (title: string, message: string, type: 'success' | 'warning' | 'error' | 'info') => {
+    const id = `toast_${Date.now()}`;
+    setToasts(prev => [...prev, { id, title, message, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const tabs = [
+    { id: 'overview', name: t('nav.overview'), icon: Activity, emoji: '📊' },
+    { id: 'patients', name: 'Patients', icon: Users, emoji: '👥' },
+    { id: 'vaccines', name: 'Vaccines', icon: Syringe, emoji: '💉' },
+    { id: 'scanner', name: 'QR Scanner', icon: QrCode, emoji: '📱' },
+    { id: 'transport', name: t('nav.transport'), icon: Bike, emoji: '🏍️' },
+    { id: 'myths', name: t('nav.myths'), icon: Shield, emoji: '🛡️' },
+    { id: 'reports', name: t('nav.reports'), icon: FileText, emoji: '📋' }
+  ];
+
+  // Health worker statistics
+  const healthWorkerStats = {
+    totalPatients: patients.length,
+    todayAppointments: todayAppointments.filter(apt => apt.status === 'pending').length,
+    vaccinesGiven: 127,
+    criticalVaccines: vaccineInventory.filter(v => v.status === 'critical').length,
+    incomingPatients: rideRequests.filter(req => req.destination.includes('Health')).length
+  };
 
   const handleServiceRequest = (serviceData: any) => {
-    addNotification({
-      title: language === 'sw' ? 'Ombi la Usafiri Limewasilishwa' : 'Transport Request Submitted',
-      message: language === 'sw' ? 'Ombi limewasilishwa kwa ParaBoda' : 'Request submitted to ParaBoda',
-      type: 'success',
-      read: false
+    addRideRequest({
+      type: serviceData.serviceId,
+      patientName: serviceData.patientName,
+      pickup: serviceData.pickupLocation,
+      destination: serviceData.destination,
+      urgency: serviceData.urgency,
+      status: 'pending',
+      requestedBy: user?.name || 'Health Worker',
+      cost: serviceData.estimatedCost || 500,
+      notes: serviceData.additionalNotes
     });
-    setActiveModal(null);
+
+    setShowServiceModal(false);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ombi la usafiri limewasilishwa' : 'Transport request submitted',
+      'success'
+    );
   };
 
-  const handleModalClose = () => {
-    setActiveModal(null);
-    setSelectedLoanType('');
-    setShowCreditCoach(false);
+  const handleAddPatient = () => {
+    const newPatient = {
+      id: `patient_${Date.now()}`,
+      name: 'New Patient',
+      age: 0,
+      gender: 'Unknown',
+      condition: 'General consultation',
+      lastVisit: new Date().toISOString().split('T')[0],
+      nextAppointment: '',
+      status: 'active',
+      notes: ''
+    };
+
+    setPatients(prev => [newPatient, ...prev]);
+    setShowAddPatientModal(false);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Mgonjwa ameongezwa' : 'Patient added successfully',
+      'success'
+    );
   };
 
-  const handleModalSuccess = () => {
-    handleModalClose();
+  const handleAttendAppointment = (appointmentId: string) => {
+    setTodayAppointments(prev => 
+      prev.map(apt => 
+        apt.id === appointmentId 
+          ? { ...apt, status: 'completed' }
+          : apt
+      )
+    );
+    
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Miadi imehudhuria' : 'Appointment attended',
+      'success'
+    );
   };
 
-  const handleLoanApplication = (loanType: string) => {
-    setSelectedLoanType(loanType);
-    setActiveModal('loanApplication');
+  const handleStartConsultation = (patientId: string) => {
+    setSelectedPatient(patients.find(p => p.id === patientId));
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ushauri umeanza' : 'Consultation started',
+      'info'
+    );
   };
 
-  const handleRewardsRedeem = (item: any) => {
-    addNotification({
-      title: language === 'sw' ? 'Zawadi Imechukuliwa' : 'Reward Redeemed',
-      message: language === 'sw' 
-        ? `Umechukua ${item.nameSwahili || item.name}`
-        : `You redeemed ${item.name}`,
-      type: 'success',
-      read: false
-    });
-    setActiveModal(null);
+  const handleEndConsultation = () => {
+    setSelectedPatient(null);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ushauri umekamilika' : 'Consultation completed',
+      'success'
+    );
+  };
+
+  const handleUpdateInventory = (vaccineId: string, newStock: number) => {
+    setVaccineInventory(prev =>
+      prev.map(vaccine =>
+        vaccine.id === vaccineId
+          ? { 
+              ...vaccine, 
+              stock: newStock,
+              status: newStock <= 10 ? 'critical' : newStock <= 25 ? 'low' : 'good'
+            }
+          : vaccine
+      )
+    );
+    
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Hifadhi imesasishwa' : 'Inventory updated',
+      'success'
+    );
+  };
+
+  const handleReportMyth = () => {
+    const mythData = {
+      category: 'general',
+      content: 'Health myth reported by health worker',
+      location: user?.location || 'Health Facility',
+      reportedBy: user?.name || 'Health Worker',
+      verified: false,
+      debunked: false
+    };
+
+    addMythReport(mythData);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ripoti ya uwongo imewasilishwa' : 'Myth report submitted',
+      'success'
+    );
+  };
+
+  const handleCameraCapture = (imageData: string, file: File) => {
+    switch (cameraContext) {
+      case 'patient':
+        showToast(
+          language === 'sw' ? 'Picha ya Mgonjwa Imehifadhiwa' : 'Patient Photo Saved',
+          language === 'sw' ? 'Picha ya mgonjwa imehifadhiwa' : 'Patient photo has been saved',
+          'success'
+        );
+        break;
+      case 'vaccine':
+        showToast(
+          language === 'sw' ? 'Picha ya Chanjo Imehifadhiwa' : 'Vaccine Photo Saved',
+          language === 'sw' ? 'Picha ya chanjo imehifadhiwa' : 'Vaccine photo has been saved',
+          'success'
+        );
+        break;
+      case 'myth':
+        showToast(
+          language === 'sw' ? 'Picha ya Uwongo Imehifadhiwa' : 'Myth Photo Saved',
+          language === 'sw' ? 'Picha ya uwongo imehifadhiwa' : 'Myth photo has been saved',
+          'success'
+        );
+        break;
+      case 'transport':
+        showToast(
+          language === 'sw' ? 'Picha ya Usafiri Imehifadhiwa' : 'Transport Photo Saved',
+          language === 'sw' ? 'Picha ya usafiri imehifadhiwa' : 'Transport photo has been saved',
+          'success'
+        );
+        break;
+      case 'scanner':
+        showToast(
+          language === 'sw' ? 'Picha ya Skana Imehifadhiwa' : 'Scanner Photo Saved',
+          language === 'sw' ? 'Picha ya skana imehifadhiwa' : 'Scanner photo has been saved',
+          'success'
+        );
+        break;
+    }
+    setShowCameraModal(false);
+  };
+
+  const openCamera = (context: 'patient' | 'vaccine' | 'myth' | 'transport' | 'scanner') => {
+    setCameraContext(context);
+    setShowCameraModal(true);
+  };
+
+  const handleQRScan = () => {
+    showToast(
+      language === 'sw' ? 'QR Code Imesomwa' : 'QR Code Scanned',
+      language === 'sw' ? 'Taarifa za mgonjwa zimepatikana' : 'Patient information retrieved',
+      'success'
+    );
+    setShowQRScannerModal(false);
   };
 
   return (
     <div className="min-h-screen dashboard-bg-health">
       <Header 
-        title={language === 'sw' ? 'Mfanyakazi wa Afya' : 'Health Worker'}
-        subtitle={language === 'sw' ? 'Huduma za kimatibabu' : 'Medical services'}
+        title={language === 'sw' ? 'Dashibodi ya Mfanyakazi wa Afya' : 'Health Worker Dashboard'}
+        subtitle={language === 'sw' ? `Karibu, ${user?.name}` : `Welcome, ${user?.name}`}
       />
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border-4 border-blue-200">
-            <div className="text-6xl mb-4">👩‍⚕️</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {language === 'sw' ? `Karibu, ${user?.name}!` : `Welcome, ${user?.name}!`}
-            </h1>
-            <p className="text-lg text-gray-600 font-medium">
-              {language === 'sw' ? `Wagonjwa ${patients.length} • Chanjo ${vaccines.length}` : `${patients.length} Patients • ${vaccines.length} Vaccines`}
-            </p>
-            <div className="mt-4 bg-blue-100 rounded-2xl p-4 inline-block">
-              <p className="text-sm text-blue-800 font-semibold">
-                {language === 'sw' ? 'Salio lako' : 'Your balance'}: {formatAmount(walletData.balance)}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Main Action Buttons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Patient Management */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            onClick={() => setActiveModal('patients')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">👥</div>
-            <Users className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'WAGONJWA' : 'PATIENTS'}
-              </div>
-              <div className="text-sm opacity-90">
-                {patients.length} {language === 'sw' ? 'wagonjwa' : 'patients'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Vaccines & Inventory */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => setActiveModal('vaccines')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">💉</div>
-            <Syringe className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'CHANJO' : 'VACCINES'}
-              </div>
-              <div className="text-sm opacity-90">
-                {vaccines.filter(v => v.status === 'in_stock').length} {language === 'sw' ? 'zinapatikana' : 'in stock'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Transport Requests */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            onClick={() => setActiveModal('transport')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🚲</div>
-            <Bike className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'USAFIRI' : 'TRANSPORT'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Maombi ya wagonjwa' : 'Patient requests'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* ParaBoda AI */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => setActiveModal('bsenseAI')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🧠</div>
-            <Brain className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'MSAIDIZI' : 'AI HELPER'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Msaidizi wa kliniki' : 'Clinical assistant'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* QR Scanner */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            onClick={() => setActiveModal('qrScanner')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">📱</div>
-            <QrCode className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'SKANI' : 'SCAN'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Skani rekodi za mgonjwa' : 'Scan patient records'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* M-SUPU Wallet */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            onClick={() => setActiveModal('wallet')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">💰</div>
-            <Wallet className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'M-SUPU' : 'M-SUPU'}
-              </div>
-              <div className="text-sm opacity-90">
-                {formatAmount(walletData.balance)}
-              </div>
-            </div>
-          </motion.button>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <StatsCard
+            title={language === 'sw' ? 'Wagonjwa wa Jumla' : 'Total Patients'}
+            value={healthWorkerStats.totalPatients}
+            change="+3 this week"
+            changeType="positive"
+            icon={Users}
+            color="blue"
+            delay={0}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Miadi ya Leo' : "Today's Appointments"}
+            value={healthWorkerStats.todayAppointments}
+            change="2 pending"
+            changeType="warning"
+            icon={Calendar}
+            color="orange"
+            delay={0.1}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Chanjo Zilizotolewa' : 'Vaccines Given'}
+            value={healthWorkerStats.vaccinesGiven}
+            change="+12 this week"
+            changeType="positive"
+            icon={Syringe}
+            color="green"
+            delay={0.2}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Chanjo za Dharura' : 'Critical Vaccines'}
+            value={healthWorkerStats.criticalVaccines}
+            change="Need restocking"
+            changeType="negative"
+            icon={AlertTriangle}
+            color="red"
+            delay={0.3}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Wagonjwa Wanaokuja' : 'Incoming Patients'}
+            value={healthWorkerStats.incomingPatients}
+            change="Via ParaBoda"
+            changeType="positive"
+            icon={Route}
+            color="purple"
+            delay={0.4}
+          />
         </div>
 
-        {/* MSUPU Wallet Section for Health Workers */}
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2 bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-xl border-4 border-blue-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-blue-100'
+                }`}
+              >
+                <span className="text-xl">{tab.emoji}</span>
+                <tab.icon className="w-5 h-5" />
+                <span className="hidden sm:inline">{tab.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
         <motion.div
+          key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mb-8"
+          transition={{ duration: 0.3 }}
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-            <Wallet className="w-8 h-8 text-emerald-600" />
-            <span>{language === 'sw' ? 'M-SUPU Pochi ya Mfanyakazi wa Afya' : 'Health Worker M-SUPU Wallet'}</span>
-          </h2>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              {/* Quick Actions */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Zap className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</span>
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button
+                    onClick={handleAddPatient}
+                    className="flex flex-col items-center space-y-3 p-6 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 hover:bg-green-100 transition-all"
+                  >
+                    <UserPlus className="w-8 h-8 text-green-600" />
+                    <span className="font-bold text-green-800 text-center">
+                      {language === 'sw' ? 'Ongeza Mgonjwa' : 'Add Patient'}
+                    </span>
+                  </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Credit Profile Card */}
-            <CreditProfileCard
-              creditScore={walletData.creditScore}
-              savingsBalance={walletData.savings}
-              eligibilityStatus={walletData.eligibilityStatus as any}
-              loanReadiness={walletData.loanReadiness}
-              trustLevel={walletData.trustLevel as any}
-            />
+                  <button
+                    onClick={() => setShowQRScannerModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 hover:bg-blue-100 transition-all"
+                  >
+                    <QrCode className="w-8 h-8 text-blue-600" />
+                    <span className="font-bold text-blue-800 text-center">
+                      {language === 'sw' ? 'Skani QR' : 'Scan QR'}
+                    </span>
+                  </button>
 
-            {/* Quick Wallet Actions */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-6 border-4 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
-                {language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}
+                  <button
+                    onClick={() => setShowParabodaAI(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 hover:bg-purple-100 transition-all"
+                  >
+                    <Brain className="w-8 h-8 text-purple-600" />
+                    <span className="font-bold text-purple-800 text-center">
+                      {language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={handleReportMyth}
+                    className="flex flex-col items-center space-y-3 p-6 bg-red-50 border-2 border-red-200 rounded-xl hover:border-red-300 hover:bg-red-100 transition-all"
+                  >
+                    <Shield className="w-8 h-8 text-red-600" />
+                    <span className="font-bold text-red-800 text-center">
+                      {language === 'sw' ? 'Ripoti Uwongo' : 'Report Myth'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Today's Appointments */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Calendar className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Miadi ya Leo' : "Today's Appointments"}</span>
+                </h3>
+                <div className="space-y-4">
+                  {todayAppointments.map((appointment) => (
+                    <div key={appointment.id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <span className="font-bold text-gray-900">{appointment.patientName}</span>
+                          <span className="text-sm text-gray-500">{appointment.time}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {appointment.status}
+                          </span>
+                        </div>
+                        <span className="font-medium text-blue-600">{appointment.type}</span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-3">{appointment.notes}</p>
+                      <div className="flex space-x-3">
+                        {appointment.status === 'pending' && (
+                          <button
+                            onClick={() => handleAttendAppointment(appointment.id)}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-bold text-sm"
+                          >
+                            {language === 'sw' ? 'Hudhuria' : 'Attend'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => openCamera('patient')}
+                          className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Incoming Patients via ParaBoda */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Route className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Wagonjwa Wanaokuja' : 'Incoming Patients'}</span>
+                </h3>
+                <div className="space-y-4">
+                  {rideRequests.filter(req => req.destination.includes('Health')).slice(0, 3).map((request) => (
+                    <div key={request.id} className="border border-gray-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-bold text-gray-900">{request.patientName}</span>
+                        <span className="text-sm text-blue-600">ETA: 15 min</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Aina' : 'Type'}</p>
+                          <p className="font-medium">{request.type.replace('_', ' ')}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Haraka' : 'Urgency'}</p>
+                          <p className={`font-medium ${
+                            request.urgency === 'high' ? 'text-red-600' :
+                            request.urgency === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {request.urgency}
+                          </p>
+                        </div>
+                      </div>
+                      {request.notes && (
+                        <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-lg">
+                          {request.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Patients Tab */}
+          {activeTab === 'patients' && (
+            <div className="space-y-6">
+              {/* Search and Add Patient */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={language === 'sw' ? 'Tafuta mgonjwa...' : 'Search patients...'}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddPatient}
+                    className="flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-bold"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    <span>{language === 'sw' ? 'Ongeza Mgonjwa' : 'Add Patient'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Patients List */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Users className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Wagonjwa' : 'Patients'} ({patients.length})</span>
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {patients.filter(patient => 
+                    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    patient.condition.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((patient) => (
+                    <div key={patient.id} className="border border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-colors">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-bold text-gray-900">{patient.name}</h4>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                          patient.status === 'vaccine_due' ? 'bg-orange-100 text-orange-800' :
+                          patient.status === 'follow_up' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {patient.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Umri' : 'Age'}</p>
+                          <p className="font-bold">{patient.age} {patient.age === 0.5 ? 'months' : 'years'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Jinsia' : 'Gender'}</p>
+                          <p className="font-bold">{patient.gender}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Hali' : 'Condition'}</p>
+                          <p className="font-bold">{patient.condition}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">{language === 'sw' ? 'Ziara Ijayo' : 'Next Visit'}</p>
+                          <p className="font-bold text-sm">
+                            {patient.nextAppointment 
+                              ? new Date(patient.nextAppointment).toLocaleDateString()
+                              : 'Not scheduled'
+                            }
+                          </p>
+                        </div>
+                      </div>
+
+                      {patient.notes && (
+                        <p className="text-gray-700 text-sm mb-4 bg-yellow-50 p-3 rounded-lg">
+                          {patient.notes}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleStartConsultation(patient.id)}
+                          className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
+                        >
+                          <Stethoscope className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Anza Ushauri' : 'Start Consultation'}</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => openCamera('patient')}
+                          className="flex items-center space-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Picha' : 'Photo'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => setShowParabodaAI(true)}
+                          className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm font-bold"
+                        >
+                          <Brain className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}</span>
+                        </button>
+
+                        {selectedPatient?.id === patient.id && (
+                          <button
+                            onClick={handleEndConsultation}
+                            className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-bold"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>{language === 'sw' ? 'Maliza Ushauri' : 'End Consultation'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Vaccines Tab */}
+          {activeTab === 'vaccines' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Syringe className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Hifadhi ya Chanjo' : 'Vaccine Inventory'}</span>
+                </h3>
+                <button
+                  onClick={() => openCamera('vaccine')}
+                  className="flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-bold"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Piga Picha' : 'Take Photo'}</span>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {vaccineInventory.map((vaccine) => (
+                  <div key={vaccine.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-bold text-gray-900">{vaccine.name}</h4>
+                      <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        vaccine.status === 'critical' ? 'bg-red-100 text-red-800' :
+                        vaccine.status === 'low' ? 'bg-orange-100 text-orange-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {vaccine.status}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Hisa' : 'Stock'}</p>
+                        <p className="text-2xl font-bold text-blue-600">{vaccine.stock}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Mwisho wa Matumizi' : 'Expiry Date'}</p>
+                        <p className="font-medium">{new Date(vaccine.expiry).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        placeholder="New stock"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const newStock = parseInt((e.target as HTMLInputElement).value);
+                            if (newStock >= 0) {
+                              handleUpdateInventory(vaccine.id, newStock);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => openCamera('vaccine')}
+                        className="border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Scanner Tab */}
+          {activeTab === 'scanner' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                <QrCode className="w-6 h-6 text-blue-500" />
+                <span>{language === 'sw' ? 'Skana ya QR' : 'QR Scanner'}</span>
               </h3>
-
-              <div className="grid grid-cols-1 gap-4">
-                {/* Apply for Loan */}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <button
-                  onClick={() => setActiveModal('medicalLoanOptions')}
-                  className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  onClick={handleQRScan}
+                  className="flex flex-col items-center space-y-4 p-8 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 hover:bg-blue-100 transition-all"
                 >
-                  <DollarSign className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Omba Mkopo' : 'Apply for Loan'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Vifaa vya matibabu' : 'Medical equipment'}</div>
+                  <QrCode className="w-16 h-16 text-blue-600" />
+                  <div className="text-center">
+                    <h4 className="font-bold text-blue-800 text-lg mb-2">
+                      {language === 'sw' ? 'Skani Mgonjwa' : 'Scan Patient'}
+                    </h4>
+                    <p className="text-blue-600">
+                      {language === 'sw' ? 'Skani QR code ya mgonjwa' : 'Scan patient QR code'}
+                    </p>
                   </div>
                 </button>
 
-                {/* Add Savings */}
                 <button
-                  onClick={() => setActiveModal('addSavings')}
-                  className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  onClick={() => openCamera('scanner')}
+                  className="flex flex-col items-center space-y-4 p-8 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 hover:bg-green-100 transition-all"
                 >
-                  <PiggyBank className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Akiba za kibinafsi' : 'Personal savings'}</div>
-                  </div>
-                </button>
-
-                {/* Credit Coach */}
-                <button
-                  onClick={() => setShowCreditCoach(true)}
-                  className="w-full p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Brain className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Mkocha wa Mkopo' : 'Credit Coach'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Ushauri wa kifedha' : 'Financial advice'}</div>
-                  </div>
-                </button>
-
-                {/* Rewards */}
-                <button
-                  onClick={() => setActiveModal('rewards')}
-                  className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Award className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Zawadi' : 'Rewards'}</div>
-                    <div className="text-sm opacity-90">{userPoints} {language === 'sw' ? 'pointi' : 'points'}</div>
+                  <Camera className="w-16 h-16 text-green-600" />
+                  <div className="text-center">
+                    <h4 className="font-bold text-green-800 text-lg mb-2">
+                      {language === 'sw' ? 'Piga Picha ya Skana' : 'Take Scanner Photo'}
+                    </h4>
+                    <p className="text-green-600">
+                      {language === 'sw' ? 'Piga picha ya vifaa' : 'Capture equipment photo'}
+                    </p>
                   </div>
                 </button>
               </div>
+
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-bold text-gray-900 mb-4">
+                  {language === 'sw' ? 'Historia ya Skana za Hivi Karibuni' : 'Recent Scan History'}
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <div>
+                      <p className="font-medium">Grace Muthoni</p>
+                      <p className="text-sm text-gray-500">Patient ID: PAT001</p>
+                    </div>
+                    <span className="text-sm text-gray-500">2 min ago</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <div>
+                      <p className="font-medium">Vaccine Batch #VB2024</p>
+                      <p className="text-sm text-gray-500">BCG Vaccine</p>
+                    </div>
+                    <span className="text-sm text-gray-500">15 min ago</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <div>
+                      <p className="font-medium">Baby Michael</p>
+                      <p className="text-sm text-gray-500">Patient ID: PAT002</p>
+                    </div>
+                    <span className="text-sm text-gray-500">1 hour ago</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Transport Tab */}
+          {activeTab === 'transport' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Bike className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Usimamizi wa Usafiri' : 'Transport Management'}</span>
+                </h3>
+                <button
+                  onClick={() => setShowServiceModal(true)}
+                  className="flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-bold"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {rideRequests.map((request) => (
+                  <div key={request.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-gray-900">{request.patientName}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          request.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {request.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-green-600">KSh {request.cost}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Kuchukua' : 'Pickup'}</p>
+                        <p className="font-medium">{request.pickup}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Marudio' : 'Destination'}</p>
+                        <p className="font-medium">{request.destination}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">{language === 'sw' ? 'Aina' : 'Type'}</p>
+                        <p className="font-medium">{request.type.replace('_', ' ')}</p>
+                      </div>
+                    </div>
+
+                    {request.notes && (
+                      <p className="text-gray-600 text-sm mb-4 bg-gray-50 p-3 rounded-lg">
+                        {request.notes}
+                      </p>
+                    )}
+
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => openCamera('transport')}
+                        className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Myths Tab */}
+          {activeTab === 'myths' && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-blue-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Shield className="w-6 h-6 text-blue-500" />
+                  <span>{language === 'sw' ? 'Ripoti za Uwongo' : 'Myth Reports'}</span>
+                </h3>
+                <button
+                  onClick={handleReportMyth}
+                  className="flex items-center space-x-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors font-bold"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{language === 'sw' ? 'Ripoti Uwongo' : 'Report Myth'}</span>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {mythReports.map((myth) => (
+                  <div key={myth.id} className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-gray-900">{myth.category}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          myth.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {myth.verified ? 'Verified' : 'Pending'}
+                        </span>
+                      </div>
+                      {myth.reach && (
+                        <span className="text-sm text-gray-500">Reach: {myth.reach}</span>
+                      )}
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{myth.content}</p>
+                    <p className="text-gray-500 text-sm mb-4">{myth.location}</p>
+
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => openCamera('myth')}
+                        className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
-      {/* Patients Modal */}
-      {activeModal === 'patients' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center flex-1">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-blue-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {language === 'sw' ? 'Wagonjwa Wako' : 'Your Patients'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              {patients.map((patient) => (
-                <div key={patient.id} className="p-6 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{patient.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {language === 'sw' ? 'Umri' : 'Age'}: {patient.age} • {patient.gender === 'male' ? (language === 'sw' ? 'Mwanaume' : 'Male') : (language === 'sw' ? 'Mwanamke' : 'Female')}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{patient.location}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      patient.vaccinationStatus === 'up_to_date' ? 'bg-green-100 text-green-800' :
-                      patient.vaccinationStatus === 'overdue' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {patient.vaccinationStatus === 'up_to_date' ? (language === 'sw' ? 'SAWA' : 'UP TO DATE') :
-                       patient.vaccinationStatus === 'overdue' ? (language === 'sw' ? 'UMECHELEWA' : 'OVERDUE') :
-                       (language === 'sw' ? 'NUSU' : 'PARTIAL')}
-                    </span>
-                  </div>
-                  
-                  {patient.nextAppointment && (
-                    <div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 mb-3">
-                      <Calendar className="w-4 h-4" />
-                      <span>{language === 'sw' ? 'Miadi ijayo' : 'Next appointment'}: {patient.nextAppointment.toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => console.log('View patient:', patient.id)}
-                      className="min-h-[48px] bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all transform hover:scale-105"
-                    >
-                      {language === 'sw' ? 'ONA' : 'VIEW'}
-                    </button>
-                    <button
-                      onClick={() => console.log('Schedule appointment:', patient.id)}
-                      className="min-h-[48px] bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all transform hover:scale-105"
-                    >
-                      {language === 'sw' ? 'PANGA' : 'SCHEDULE'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-            >
-              {language === 'sw' ? 'Funga' : 'Close'}
-            </button>
-          </motion.div>
-        </div>
-      )}
+      {/* Service Request Modal */}
+      <ServiceRequestModal
+        isOpen={showServiceModal}
+        onClose={() => setShowServiceModal(false)}
+        onRequest={handleServiceRequest}
+      />
 
-      {/* Vaccines Modal */}
-      {activeModal === 'vaccines' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center flex-1">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Syringe className="w-8 h-8 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {language === 'sw' ? 'Hifadhi ya Chanjo' : 'Vaccine Inventory'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              {vaccines.map((vaccine) => (
-                <div key={vaccine.id} className="p-6 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{vaccine.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{language === 'sw' ? 'Nambari ya kundi' : 'Batch'}: {vaccine.batchNumber}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{language === 'sw' ? 'Mtengenezaji' : 'Manufacturer'}: {vaccine.manufacturer}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      vaccine.status === 'in_stock' ? 'bg-green-100 text-green-800' :
-                      vaccine.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {vaccine.status === 'in_stock' ? '✅' :
-                       vaccine.status === 'low_stock' ? '🟡' : '🔴'}
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <div>{language === 'sw' ? 'Hisa' : 'Stock'}: {vaccine.stockQuantity}</div>
-                    <div>{language === 'sw' ? 'Mwisho' : 'Expires'}: {vaccine.expiryDate.toLocaleDateString()}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-            >
-              {language === 'sw' ? 'Funga' : 'Close'}
-            </button>
-          </motion.div>
-        </div>
-      )}
+      {/* Camera Modal */}
+      <CameraCapture
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+        title={
+          cameraContext === 'patient' ? (language === 'sw' ? 'Piga Picha ya Mgonjwa' : 'Take Patient Photo') :
+          cameraContext === 'vaccine' ? (language === 'sw' ? 'Piga Picha ya Chanjo' : 'Take Vaccine Photo') :
+          cameraContext === 'myth' ? (language === 'sw' ? 'Piga Picha ya Uwongo' : 'Take Myth Photo') :
+          cameraContext === 'transport' ? (language === 'sw' ? 'Piga Picha ya Usafiri' : 'Take Transport Photo') :
+          (language === 'sw' ? 'Piga Picha ya Skana' : 'Take Scanner Photo')
+        }
+        context={
+          cameraContext === 'patient' ? (language === 'sw' ? 'Piga picha ya mgonjwa' : 'Capture patient information') :
+          cameraContext === 'vaccine' ? (language === 'sw' ? 'Piga picha ya chanjo' : 'Capture vaccine information') :
+          cameraContext === 'myth' ? (language === 'sw' ? 'Piga picha ya uwongo wa kiafya' : 'Capture health misinformation') :
+          cameraContext === 'transport' ? (language === 'sw' ? 'Piga picha ya usafiri' : 'Capture transport evidence') :
+          (language === 'sw' ? 'Piga picha ya vifaa' : 'Capture equipment photo')
+        }
+      />
 
-      {/* Wallet Modal */}
-      {activeModal === 'wallet' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Wallet className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {language === 'sw' ? 'M-Supu Pochi' : 'M-Supu Wallet'}
-              </h2>
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl">
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                  {formatAmount(walletData.balance)}
-                </div>
-                <p className="text-emerald-800 dark:text-emerald-200 font-medium">
-                  {language === 'sw' ? 'Salio Lako' : 'Your Balance'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => setActiveModal('addSavings')}
-                className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <PiggyBank className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('rewards')}
-                className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Award className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Zawadi' : 'Rewards'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('creditReport')}
-                className="w-full p-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl hover:from-indigo-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Eye className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ripoti ya Mkopo' : 'Credit Report'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-              >
-                {language === 'sw' ? 'Funga' : 'Close'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* All Modals */}
+      {/* ParaBoda-AI Modal */}
       <BSenseAI
-        isOpen={activeModal === 'bsenseAI'}
-        onClose={() => setActiveModal(null)}
+        isOpen={showParabodaAI}
+        onClose={() => setShowParabodaAI(false)}
         userRole="health_worker"
       />
 
-      <QRScanner
-        isOpen={activeModal === 'qrScanner'}
-        onClose={() => setActiveModal(null)}
-        onScan={(data) => {
-          console.log('QR Scanned:', data);
-          setActiveModal(null);
-          addNotification({
-            title: language === 'sw' ? 'Rekodi za Mgonjwa Zimepatikana' : 'Patient Records Retrieved',
-            message: language === 'sw' ? 'Rekodi za mgonjwa zimepatikana' : 'Patient records have been retrieved',
-            type: 'success',
-            read: false
-          });
-        }}
-      />
-
-      <ServiceRequestModal
-        isOpen={activeModal === 'transport'}
-        onClose={() => setActiveModal(null)}
-        onRequest={handleServiceRequest}
-        serviceType="transport"
-      />
-
-      <RewardsModal
-        isOpen={activeModal === 'rewards'}
-        onClose={() => setActiveModal(null)}
-        userPoints={userPoints}
-        onRedeem={handleRewardsRedeem}
-      />
-
-      {/* Wallet Modals */}
-      <MedicalLoanOptions
-        isOpen={activeModal === 'medicalLoanOptions'}
-        onClose={handleModalClose}
-        onLoanSelect={handleLoanApplication}
-      />
-
-      <LoanApplicationForm
-        isOpen={activeModal === 'loanApplication'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        loanType={selectedLoanType}
-      />
-
-      <AddSavingsForm
-        isOpen={activeModal === 'addSavings'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        currentBalance={walletData.balance}
-      />
-
-      <LoanPaymentForm
-        isOpen={activeModal === 'loanPayment'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-      />
-
-      <CreditCoachChat
-        isOpen={showCreditCoach}
-        onClose={() => setShowCreditCoach(false)}
-        userCreditScore={walletData.creditScore}
-        userSavings={walletData.savings}
-      />
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Bike, 
   Heart, 
@@ -25,59 +26,98 @@ import {
   Home,
   Phone,
   Mail
+  ChevronDown,
+  Wallet,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
   const { t, language, setLanguage, languages } = useLanguage();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   const dashboardPreviews = [
     {
-      title: '👨‍👩‍👧‍👦',
-      subtitle: language === 'sw' ? 'Walezi' : 'Caregivers',
+      title: 'Caregiver',
+      subtitle: language === 'sw' ? 'Mwanajamii' : 'Community Member',
       icon: User,
       color: 'emerald',
       path: '/community',
       emoji: '🏠',
-      description: language === 'sw' ? 'Huduma za afya, usafiri, zawadi' : 'Health services, transport, rewards'
+      description: language === 'sw' ? 'Huduma za afya, usafiri, na zawadi' : 'Health services, transport, and rewards'
     },
     {
-      title: '🏍️',
-      subtitle: language === 'sw' ? 'ParaBodas' : 'ParaBodas',
+      title: 'CHV',
+      subtitle: language === 'sw' ? 'Mjumbe wa Afya ya Jamii' : 'Community Health Volunteer',
+      icon: Heart,
+      color: 'green',
+      path: '/chv',
+      emoji: '❤️',
+      description: language === 'sw' ? 'Usimamizi wa afya ya jamii' : 'Community health management'
+    },
+    {
+      title: 'Health Worker',
+      subtitle: language === 'sw' ? 'Mfanyakazi wa Afya' : 'Health Professional',
+      icon: Stethoscope,
+      color: 'teal',
+      path: '/health-worker',
+      emoji: '🩺',
+      description: language === 'sw' ? 'Huduma za kimatibabu' : 'Medical services'
+    },
+    {
+      title: 'Rider',
+      subtitle: language === 'sw' ? 'Msafiri wa ParaBoda' : 'ParaBoda Operator',
       icon: Bike,
       color: 'orange',
       path: '/rider',
       emoji: '🚴‍♂️',
-      description: language === 'sw' ? 'Safari, dharura, miradi ya vijana' : 'Rides, emergencies, youth programs'
+      description: language === 'sw' ? 'Usafiri, dharura, na miradi ya vijana' : 'Transport, emergency, and youth programs'
     },
     {
-      title: '❤️',
-      subtitle: t('users.chvs'),
-      icon: Heart,
+      title: 'M-SUPU',
+      subtitle: language === 'sw' ? 'Pochi ya Jamii' : 'Community Wallet',
+      icon: Wallet,
       color: 'purple',
-      path: '/chv',
-      emoji: '👩‍⚕️',
-      description: language === 'sw' ? 'Kaya, idhini, tahadhari za afya' : 'Households, approvals, health alerts'
+      path: '/msupu',
+      emoji: '💳',
+      description: language === 'sw' ? 'Mikopo, akiba, na michango' : 'Loans, savings, and contributions'
     },
     {
-      title: '🩺',
-      subtitle: t('users.health_workers'),
-      icon: Stethoscope,
-      color: 'blue',
-      path: '/health-worker',
-      emoji: '👨‍⚕️',
-      description: language === 'sw' ? 'Wagonjwa, chanjo, skani QR' : 'Patients, vaccines, QR scanner'
-    },
-    {
-      title: '⚙️',
-      subtitle: t('users.admins'),
+      title: 'Admin',
+      subtitle: language === 'sw' ? 'Msimamizi wa Mfumo' : 'System Administrator',
       icon: Shield,
       color: 'gray',
       path: '/admin',
       emoji: '👨‍💼',
       description: language === 'sw' ? 'Usimamizi wa mfumo' : 'System management'
+    }
+  ];
+
+  const loginMethods = [
+    {
+      title: language === 'sw' ? 'Kuingia kwa Haraka' : 'Quick Login',
+      description: language === 'sw' ? 'Bofya jukumu lako kuingia moja kwa moja' : 'Click your role to login instantly',
+      icon: Zap,
+      color: 'emerald',
+      emoji: '⚡'
+    },
+    {
+      title: language === 'sw' ? 'Kuingia kwa QR Code' : 'QR Code Login',
+      description: language === 'sw' ? 'Skani QR code yako ya kuingia' : 'Scan your login QR code',
+      icon: QrCode,
+      color: 'blue',
+      emoji: '📱'
+    },
+    {
+      title: language === 'sw' ? 'Kuingia kwa Fomu' : 'Form Login',
+      description: language === 'sw' ? 'Tumia barua pepe na nenosiri' : 'Use email and password',
+      icon: User,
+      color: 'purple',
+      emoji: '📝'
     }
   ];
 
@@ -171,6 +211,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 lg:h-20">
             <div className="flex items-center space-x-3 lg:space-x-4">
+              {/* Reduced size motorcycle photo logo */}
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-2xl overflow-hidden shadow-xl border-2 border-yellow-400">
                 <img 
                   src="/Rider mother and child.jpg" 
@@ -181,13 +222,57 @@ export const LandingPage: React.FC = () => {
               <div>
                 <h1 className="text-xl lg:text-2xl font-black text-gray-900">ParaBoda</h1>
                 <p className="text-xs lg:text-sm text-green-600 font-bold">
-                  {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
+          <section className="py-12 lg:py-16 glass-effect relative">
                 </p>
               </div>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+                <div className="text-4xl lg:text-6xl mb-4 lg:mb-6 emoji-2xl animate-dance-african">🏥</div>
+              <div className="relative">
+                  {language === 'sw' ? 'Chagua Dashibodi Yako' : 'Choose Your Dashboard'}
+                  onClick={() => setShowDashboardDropdown(!showDashboardDropdown)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-bold transition-colors px-4 lg:px-6 py-3 lg:py-4 rounded-2xl hover:bg-yellow-100 text-lg lg:text-xl"
+                >
+                  <span className="text-xl lg:text-2xl">🏥</span>
+                  <span>{language === 'sw' ? 'Dashibodi' : 'Dashboards'}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 lg:gap-8">
+                {showDashboardDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 min-w-[300px]"
+                    whileHover={{ y: -10, scale: 1.05 }}
+                    className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all group"
+                    {dashboardPreviews.map((dashboard) => (
+                      <Link
+                        key={dashboard.path}
+                        to={dashboard.path}
+                        onClick={() => setShowDashboardDropdown(false)}
+                        className="flex items-center space-x-3 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <span className="text-2xl">{dashboard.emoji}</span>
+                        <div>
+                          <div className="font-bold text-gray-900 dark:text-white">{dashboard.title}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{dashboard.subtitle}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-3 lg:p-4 rounded-2xl text-gray-600 hover:text-gray-900 hover:bg-yellow-100 transition-colors"
+              >
+                {isDarkMode ? <Sun className="w-6 h-6 lg:w-8 lg:h-8" /> : <Moon className="w-6 h-6 lg:w-8 lg:h-8" />}
+              </button>
+
               <Link 
                 to="/auth"
                 className="flex items-center space-x-2 lg:space-x-3 text-gray-700 hover:text-gray-900 font-bold transition-colors px-4 lg:px-6 py-3 lg:py-4 rounded-2xl hover:bg-yellow-100 text-lg lg:text-xl"
@@ -247,43 +332,110 @@ export const LandingPage: React.FC = () => {
       </motion.header>
 
       {/* Hero Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-8 lg:py-12 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="text-center"
           >
-            <div className="text-8xl mb-6 emoji-2xl animate-bounce-gentle">🏥🏍️❤️</div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight">
+            <div className="text-4xl lg:text-6xl mb-4 lg:mb-6 emoji-2xl animate-bounce-gentle">🏥🏍️❤️</div>
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-gray-900 mb-4 lg:mb-6 leading-tight heading-1">
               {language === 'sw' ? 'Afya + Usafiri' : 'Health + Transport'}
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 font-bold mb-8">
-              {language === 'sw' ? 'Mfumo wa afya wa dijiti kwa jamii' : 'Digital health system for communities'}
-            </p>
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center">
+              <Link
+                to="/register"
+                className="btn-african animate-pulse-african"
+              >
+                <span className="text-2xl lg:text-3xl">🚀</span>
+                <span>{language === 'sw' ? 'ANZA' : 'START'}</span>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Dashboard Previews Section */}
-      <section className="py-12 glass-effect relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Easy Login Methods Section */}
+      <section className="py-8 lg:py-12 glass-effect relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 lg:mb-12"
           >
-            <div className="text-6xl mb-4 emoji-xl animate-dance-african">👀</div>
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-6">
-              {language === 'sw' ? 'Chagua Jukumu Lako' : 'Choose Your Role'}
+            <div className="text-3xl lg:text-5xl mb-3 lg:mb-4 emoji-xl animate-dance-african">🔑</div>
+            <h2 className="text-xl sm:text-2xl lg:text-4xl font-black text-gray-900 mb-4 lg:mb-6 heading-2">
+              {language === 'sw' ? 'Njia Rahisi za Kuingia' : 'Easy Login Methods'}
             </h2>
-            <div className="inline-flex items-center space-x-3 bg-green-100 text-green-800 px-6 py-3 rounded-full text-lg font-bold">
-              <span className="text-2xl">👁️</span>
+            <p className="text-base lg:text-lg text-gray-600 font-bold max-w-3xl mx-auto body-large">
+              {language === 'sw' 
+                ? 'Chagua njia yoyote ya kuingia - haraka, rahisi, na salama'
+                : 'Choose any login method - fast, easy, and secure'
+              }
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
+            {loginMethods.map((method, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="icon-heavy-card animate-glow-african"
+              >
+                <div className="text-center">
+                  <div className="text-4xl lg:text-6xl mb-3 lg:mb-4 emoji-xl">
+                    {method.emoji}
+                  </div>
+                  <div className={`w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-${method.color}-400 to-${method.color}-600 rounded-2xl flex items-center justify-center mb-3 lg:mb-4 mx-auto shadow-xl`}>
+                    <method.icon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-black text-gray-900 mb-2 lg:mb-3">
+                    {method.title}
+                  </h3>
+                  <p className="text-sm lg:text-base text-gray-600 mb-3 lg:mb-4 font-bold leading-relaxed">
+                    {method.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/auth"
+              className="icon-heavy-button animate-shimmer-gold"
+            >
+              <span className="text-2xl lg:text-3xl">🚀</span>
+              <span>{language === 'sw' ? 'ANZA KUINGIA' : 'START LOGIN'}</span>
+              <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Previews Section */}
+      <section className="py-8 lg:py-12 glass-effect relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8 lg:mb-12"
+          >
+            <div className="text-3xl lg:text-5xl mb-3 lg:mb-4 emoji-xl animate-dance-african">👀</div>
+            <h2 className="text-xl sm:text-2xl lg:text-4xl font-black text-gray-900 mb-4 lg:mb-6 heading-2">
+              {t('welcome.choose_role')}
+            </h2>
+            <div className="inline-flex items-center space-x-3 lg:space-x-4 bg-green-100 text-green-800 px-4 lg:px-6 py-2 lg:py-3 rounded-full text-base lg:text-lg font-bold">
+              <span className="text-lg lg:text-xl">👁️</span>
               <span>{language === 'sw' ? 'Hakuna Haja ya Kuingia' : 'No Login Needed'}</span>
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
             {dashboardPreviews.map((dashboard, index) => (
               <motion.div
                 key={index}
@@ -293,26 +445,26 @@ export const LandingPage: React.FC = () => {
                 className="icon-heavy-card animate-glow-african"
               >
                 <div className="text-center">
-                  <div className="text-6xl mb-4 emoji-xl animate-bounce-gentle">
-                    {dashboard.emoji}
+                  <div className="text-4xl lg:text-6xl mb-3 lg:mb-4 emoji-xl animate-bounce-gentle">
+                    {dashboard.kenyanIcon}
                   </div>
-                  <div className={`w-12 h-12 bg-gradient-to-br from-${dashboard.color}-400 to-${dashboard.color}-600 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-xl`}>
-                    <dashboard.icon className="w-6 h-6 text-white" />
+                  <div className={`w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-${dashboard.color}-400 to-${dashboard.color}-600 rounded-2xl flex items-center justify-center mb-3 lg:mb-4 mx-auto shadow-xl`}>
+                    <dashboard.icon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-3">
+                  <h3 className="text-lg lg:text-xl font-black text-gray-900 mb-2 lg:mb-3">
                     {dashboard.subtitle}
                   </h3>
-                  <p className="text-base text-gray-600 mb-4 font-bold leading-relaxed">
+                  <p className="text-sm lg:text-base text-gray-600 mb-3 lg:mb-4 font-bold leading-relaxed">
                     {dashboard.description}
                   </p>
                   
                   <Link
                     to={dashboard.path}
-                    className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-3 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-lg flex items-center justify-center space-x-3 shadow-xl group-hover:scale-105`}
+                    className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-2 lg:py-3 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-base lg:text-lg flex items-center justify-center space-x-2 lg:space-x-3 shadow-xl group-hover:scale-105`}
                   >
-                    <span className="text-xl">👆</span>
-                    <span>{language === 'sw' ? 'FUNGUA' : 'OPEN'}</span>
-                  </Link>
+                    <span className="text-lg lg:text-xl">👆</span>
+                      <div className="text-5xl lg:text-6xl mb-4 lg:mb-6 emoji-xl animate-bounce-gentle">
+                        {dashboard.emoji}
                 </div>
               </motion.div>
             ))}
@@ -320,75 +472,132 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Simple Features Section */}
-      <section className="py-12 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 relative">
+      {/* Stats Section */}
+      <section className="py-8 lg:py-12 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 relative">
         <div className="absolute inset-0 pattern-kente opacity-10"></div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-black text-white mb-4">
-              {language === 'sw' ? 'Huduma Zetu' : 'Our Services'}
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center glass-effect p-6 rounded-3xl shadow-2xl">
-              <div className="text-6xl mb-4">🚨</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {language === 'sw' ? 'Dharura' : 'Emergency'}
-              </h3>
-              <p className="text-gray-700">
-                {language === 'sw' ? 'Msaada wa haraka wa kiafya' : 'Rapid health assistance'}
-              </p>
-            </div>
-            
-            <div className="text-center glass-effect p-6 rounded-3xl shadow-2xl">
-              <div className="text-6xl mb-4">🏍️</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {language === 'sw' ? 'Usafiri' : 'Transport'}
-              </h3>
-              <p className="text-gray-700">
-                {language === 'sw' ? 'Usafiri wa afya wa haraka' : 'Fast health transport'}
-              </p>
-            </div>
-            
-            <div className="text-center glass-effect p-6 rounded-3xl shadow-2xl">
-              <div className="text-6xl mb-4">🧠</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {language === 'sw' ? 'AI Msaidizi' : 'AI Assistant'}
-              </h3>
-              <p className="text-gray-700">
-                {language === 'sw' ? 'Msaada wa akili bandia' : 'Intelligent health guidance'}
-              </p>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center glass-effect p-4 lg:p-6 rounded-3xl shadow-2xl"
+            >
+              <div className="text-3xl lg:text-5xl mb-2 lg:mb-3 emoji-xl">👥</div>
+              <div className="text-xl lg:text-3xl font-black text-purple-600 mb-1">15K+</div>
+              <div className="text-sm lg:text-base font-bold text-gray-700">
+                {language === 'sw' ? 'Watu' : 'People'}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-center glass-effect p-4 lg:p-6 rounded-3xl shadow-2xl"
+            >
+              <div className="text-3xl lg:text-5xl mb-2 lg:mb-3 emoji-xl">🏍️</div>
+              <div className="text-xl lg:text-3xl font-black text-orange-600 mb-1">2.5K+</div>
+              <div className="text-sm lg:text-base font-bold text-gray-700">
+                {language === 'sw' ? 'Wasafiri' : 'Riders'}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-center glass-effect p-4 lg:p-6 rounded-3xl shadow-2xl"
+            >
+              <div className="text-3xl lg:text-5xl mb-2 lg:mb-3 emoji-xl">👩‍⚕️</div>
+              <div className="text-xl lg:text-3xl font-black text-blue-600 mb-1">500+</div>
+              <div className="text-sm lg:text-base font-bold text-gray-700">
+                {language === 'sw' ? 'Madaktari' : 'Doctors'}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-center glass-effect p-4 lg:p-6 rounded-3xl shadow-2xl"
+            >
+              <div className="text-3xl lg:text-5xl mb-2 lg:mb-3 emoji-xl">✅</div>
+              <div className="text-xl lg:text-3xl font-black text-green-600 mb-1">95%</div>
+              <div className="text-sm lg:text-base font-bold text-gray-700">
+                {language === 'sw' ? 'Mafanikio' : 'Success'}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
+      {/* Contact Section */}
+      <section className="py-8 lg:py-12 glass-effect relative">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-3xl lg:text-5xl mb-4 lg:mb-6 emoji-xl animate-bounce-gentle">📞</div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 mb-4 lg:mb-6 heading-2">
+              {language === 'sw' ? 'Wasiliana Nasi' : 'Contact Us'}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="icon-heavy-card">
+                <Phone className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                      <h3 className="text-xl lg:text-2xl font-black text-gray-900 dark:text-white mb-2 lg:mb-3">
+                        {dashboard.title}
+                <p className="text-green-600 font-bold">+254 700 123 456</p>
+                      <h4 className="text-sm lg:text-base font-bold text-gray-600 dark:text-gray-400 mb-3 lg:mb-4">
+                        {dashboard.subtitle}
+                      </h4>
+              </div>
+              <div className="icon-heavy-card">
+                <Mail className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                  {language === 'sw' ? 'Barua Pepe' : 'Email'}
+                </h3>
+                        className={`w-full bg-gradient-to-r from-${dashboard.color}-500 to-${dashboard.color}-600 text-white py-3 lg:py-4 rounded-2xl hover:from-${dashboard.color}-600 hover:to-${dashboard.color}-700 transition-all font-black text-base lg:text-lg flex items-center justify-center space-x-2 lg:space-x-3 shadow-xl group-hover:scale-105`}
+              </div>
+              <div className="icon-heavy-card">
+                <MapPin className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                        <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
+                <h3 className="font-bold text-gray-900 mb-2">
+                  {language === 'sw' ? 'Mahali' : 'Location'}
+                </h3>
+                <p className="text-purple-600 font-bold">Nairobi, Kenya</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-green-500 to-blue-500 relative">
+      <section className="py-8 lg:py-12 bg-gradient-to-r from-green-500 to-blue-500 relative">
         <div className="absolute inset-0 pattern-kente opacity-10"></div>
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="text-6xl mb-6 emoji-2xl animate-bounce-gentle">🚀</div>
-            <h2 className="text-3xl lg:text-4xl font-black text-white mb-6">
+            <div className="text-4xl lg:text-6xl mb-4 lg:mb-6 emoji-2xl animate-bounce-gentle">🚀</div>
+            <h2 className="text-xl sm:text-2xl lg:text-4xl font-black text-white mb-4 lg:mb-6 heading-2">
               {language === 'sw' ? 'Jiunge Leo!' : 'Join Today!'}
             </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center">
               <Link
                 to="/register"
-                className="bg-white text-green-600 px-10 py-5 rounded-3xl hover:bg-gray-50 transition-colors font-black text-xl shadow-2xl flex items-center justify-center space-x-4 transform hover:scale-105 animate-pulse-african"
+                className="bg-white text-green-600 px-6 lg:px-10 py-3 lg:py-5 rounded-3xl hover:bg-gray-50 transition-colors font-black text-lg lg:text-xl shadow-2xl flex items-center justify-center space-x-3 lg:space-x-4 transform hover:scale-105 animate-pulse-african"
               >
-                <span className="text-3xl">✨</span>
+                <span className="text-2xl lg:text-3xl">✨</span>
                 <span>{language === 'sw' ? 'ANZA SASA' : 'START NOW'}</span>
               </Link>
               <Link
                 to="/auth"
-                className="border-4 border-white text-white px-10 py-5 rounded-3xl hover:bg-white/10 transition-colors font-black text-xl flex items-center justify-center space-x-4"
+                className="border-4 border-white text-white px-6 lg:px-10 py-3 lg:py-5 rounded-3xl hover:bg-white/10 transition-colors font-black text-lg lg:text-xl flex items-center justify-center space-x-3 lg:space-x-4"
               >
-                <span className="text-3xl">🔑</span>
+                <span className="text-2xl lg:text-3xl">🔑</span>
                 <span>{t('action.login')}</span>
               </Link>
             </div>
@@ -397,21 +606,21 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 relative">
+      <footer className="bg-gray-900 text-white py-6 lg:py-8 relative">
         <div className="absolute inset-0 pattern-kente opacity-5"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-yellow-400">
+          <div className="flex items-center justify-center space-x-3 lg:space-x-4 mb-4 lg:mb-6">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-2xl overflow-hidden border-2 border-yellow-400">
               <img 
                 src="/Rider mother and child.jpg" 
                 alt="ParaBoda Logo"
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-2xl font-black">ParaBoda</span>
+            <span className="text-xl lg:text-2xl font-black">ParaBoda</span>
           </div>
-          <div className="text-5xl mb-4 emoji-xl">❤️🏥🚴‍♂️</div>
-          <p className="text-xl font-bold text-yellow-400">
+          <div className="text-3xl lg:text-5xl mb-3 lg:mb-4 emoji-xl">❤️🏥🚴‍♂️</div>
+          <p className="text-lg lg:text-xl font-bold text-yellow-400">
             {language === 'sw' ? 'Afya Pamoja - Afya Pamoja' : 'Afya Pamoja - Health Together'}
           </p>
         </div>

@@ -31,7 +31,7 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
         
         const pngFile = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
-        downloadLink.download = `paraboda-login-qr-${Date.now()}.png`;
+        downloadLink.download = `paraboda-qr-${Date.now()}.png`;
         downloadLink.href = pngFile;
         downloadLink.click();
       };
@@ -39,24 +39,6 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
       img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
     }
   };
-
-  // Listen for custom download events
-  useEffect(() => {
-    const handleDownloadEvent = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail) {
-        const { qrData, filename } = customEvent.detail;
-        if (qrData === value) {
-          downloadQR();
-        }
-      }
-    };
-
-    window.addEventListener('downloadQR', handleDownloadEvent);
-    return () => {
-      window.removeEventListener('downloadQR', handleDownloadEvent);
-    };
-  }, [value]);
 
   const shareQR = async () => {
     if (navigator.share) {

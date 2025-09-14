@@ -5,7 +5,6 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { openaiService } from '../../services/openaiService';
 import { useVoiceCommand } from '../../contexts/VoiceCommandContext';
-import { useLocation } from 'react-router-dom';
 
 interface ChatbotProps {
   userRole?: string;
@@ -28,43 +27,22 @@ export const Chatbot: React.FC<ChatbotProps> = ({ userRole = 'community' }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
   const { user } = useAuth();
-  const location = useLocation();
   const { isListening: isVoiceListening, startListening: startVoiceListening, stopListening: stopVoiceListening, transcript, isSupported } = useVoiceCommand();
-
-  // Get current dashboard context
-  const getCurrentDashboardContext = () => {
-    const path = location.pathname;
-    const dashboardMap = {
-      '/admin': 'Admin Dashboard',
-      '/health-worker': 'Health Worker Dashboard',
-      '/chv': 'CHV Dashboard',
-      '/rider': 'ParaBoda Dashboard',
-      '/community': 'Caregivers Dashboard'
-    };
-
-    for (const [route, dashboard] of Object.entries(dashboardMap)) {
-      if (path.startsWith(route)) {
-        return dashboard;
-      }
-    }
-    return 'ParaBoda System';
-  };
 
   // Add welcome message when chat is first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const currentDashboard = getCurrentDashboardContext();
       const welcomeMessage = {
         id: `bot-${Date.now()}`,
         sender: 'bot' as const,
         text: language === 'sw' 
-          ? `Hujambo ${user?.name || ''}! Mimi ni ParaBoda-AI, msaidizi wako wa akili bandia. Sasa niko kwenye ${currentDashboard}. Ninaweza kukusaidia na maswali kuhusu afya, usafiri, na huduma zingine za ParaBoda. Vipi ninaweza kukusaidia leo?`
-          : `Hello ${user?.name || ''}! I'm ParaBoda-AI, your intelligent assistant. I'm currently in the ${currentDashboard}. I can help you with questions about health, transport, and other ParaBoda services. How can I help you today?`,
+          ? `Hujambo ${user?.name || ''}! Mimi ni msaidizi wako wa ParaBoda. Ninaweza kukusaidia na maswali kuhusu afya, usafiri, na huduma zingine. Vipi ninaweza kukusaidia leo?`
+          : `Hello ${user?.name || ''}! I'm your ParaBoda assistant. I can help you with questions about health, transport, and other services. How can I help you today?`,
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
     }
-  }, [isOpen, messages.length, language, user?.name, location.pathname]);
+  }, [isOpen, messages.length, language, user?.name]);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -79,94 +57,6 @@ export const Chatbot: React.FC<ChatbotProps> = ({ userRole = 'community' }) => {
       setInputText(transcript);
     }
   }, [transcript]);
-
-  const buildSystemContext = () => {
-    const currentDashboard = getCurrentDashboardContext();
-    const userRole = user?.role || 'community';
-    const userName = user?.name || 'User';
-    
-    return `You are ParaBoda-AI, an intelligent assistant for the ParaBoda health ecosystem in Kenya. 
-
-CURRENT CONTEXT:
-- User: ${userName} (Role: ${userRole})
-- Current Dashboard: ${currentDashboard}
-- Language: ${language === 'sw' ? 'Kiswahili' : 'English'}
-
-PARABODA SYSTEM OVERVIEW:
-ParaBoda is a comprehensive digital health ecosystem that connects:
-1. Caregivers (Community members) - Access health services, transport, rewards
-2. ParaBodas (Motorcycle riders) - Provide emergency transport, earn points
-3. CHVs (Community Health Volunteers) - Manage households, approve transport
-4. Health Workers - Manage patients, vaccines, medical records
-5. Admins - System oversight, analytics, user management
-
-KEY FEATURES:
-- Emergency transport coordination
-- Health record management
-- Vaccination tracking
-- Community health monitoring
-- Royalty rewards points system
-- M-Supu community fund
-- Myth-busting and health education
-- Multi-language support (English/Kiswahili)
-
-CURRENT DASHBOARD CAPABILITIES:
-${getDashboardCapabilities(currentDashboard)}
-
-RESPONSE GUIDELINES:
-- Be helpful, accurate, and culturally appropriate for Kenya
-- Provide specific guidance based on current dashboard context
-- Suggest relevant features and actions available in the current view
-- Always prioritize health and safety
-- Recommend professional medical care when appropriate
-- Use ${language === 'sw' ? 'Kiswahili' : 'English'} language`;
-  };
-
-  const getDashboardCapabilities = (dashboard: string) => {
-    switch (dashboard) {
-      case 'Admin Dashboard':
-        return `- User management and system oversight
-- Analytics and performance monitoring
-- System settings and configuration
-- Troubleshooting tools for all user types
-- Security and backup management
-- Push notifications and updates`;
-      
-      case 'Health Worker Dashboard':
-        return `- Patient management and medical records
-- Vaccination inventory and scheduling
-- QR code scanning for patient identification
-- Transport coordination for patients
-- Health data reporting and analytics`;
-      
-      case 'CHV Dashboard':
-        return `- Household management and monitoring
-- Transport request approval and coordination
-- Health alerts and emergency reporting
-- Community health metrics tracking
-- Myth reporting and verification`;
-      
-      case 'ParaBoda Dashboard':
-        return `- Real-time transport requests and mapping
-- Emergency response coordination
-- Earnings and points tracking
-- Route optimization and navigation
-- Safety protocols and reporting`;
-      
-      case 'Caregivers Dashboard':
-        return `- Health service access and appointment booking
-- Transport request submission
-- Royalty rewards points management
-- M-Supu community fund participation
-- Health education and myth reporting`;
-      
-      default:
-        return `- Comprehensive health and transport services
-- Community-driven health ecosystem
-- Rewards and incentive programs
-- Multi-stakeholder coordination`;
-    }
-  };
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -183,17 +73,14 @@ RESPONSE GUIDELINES:
     setIsLoading(true);
 
     try {
-      // Build comprehensive context for AI
-      const systemContext = buildSystemContext();
-      const conversationContext = messages
+      // Get context from previous messages
+      const context = messages
         .slice(-3)
-        .map(msg => `${msg.sender === 'user' ? 'User' : 'ParaBoda-AI'}: ${msg.text}`)
+        .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
         .join('\n');
 
-      const fullContext = `${systemContext}\n\nRECENT CONVERSATION:\n${conversationContext}`;
-
-      // Get response from OpenAI with full system context
-      const response = await openaiService.chatWithAI(inputText, language, fullContext);
+      // Get response from mock AI
+      const response = await openaiService.chatWithAI(inputText, language, context);
 
       const botMessage = {
         id: `bot-${Date.now()}`,
@@ -236,47 +123,42 @@ RESPONSE GUIDELINES:
     }
   };
 
-  // Quick suggestions based on current dashboard and user role
+  // Quick suggestions based on user role
   const getQuickSuggestions = () => {
-    const currentDashboard = getCurrentDashboardContext();
-    
     const suggestions = {
-      'Admin Dashboard': [
-        language === 'sw' ? 'Onyesha takwimu za mfumo' : 'Show system analytics',
-        language === 'sw' ? 'Vipi naweza kuongeza mtumiaji mpya?' : 'How can I add a new user?',
-        language === 'sw' ? 'Ni nini hali ya mfumo?' : 'What is the system status?'
-      ],
-      'Health Worker Dashboard': [
-        language === 'sw' ? 'Vipi naweza kuongeza mgonjwa mpya?' : 'How can I add a new patient?',
-        language === 'sw' ? 'Onyesha hifadhi ya chanjo' : 'Show vaccine inventory',
-        language === 'sw' ? 'Vipi naweza kutumia skana ya QR?' : 'How do I use the QR scanner?'
-      ],
-      'CHV Dashboard': [
-        language === 'sw' ? 'Vipi naweza kuongeza kaya mpya?' : 'How can I add a new household?',
-        language === 'sw' ? 'Onyesha maombi ya usafiri' : 'Show transport requests',
-        language === 'sw' ? 'Vipi naweza kuripoti tahadhari?' : 'How can I report an alert?'
-      ],
-      'ParaBoda Dashboard': [
-        language === 'sw' ? 'Onyesha maombi ya usafiri' : 'Show transport requests',
-        language === 'sw' ? 'Vipi naweza kuripoti dharura?' : 'How can I report an emergency?',
-        language === 'sw' ? 'Ni kiasi gani cha pointi zangu?' : 'How many points do I have?'
-      ],
-      'Caregivers Dashboard': [
+      community: [
         language === 'sw' ? 'Ninahitaji usafiri wa dharura' : 'I need emergency transport',
         language === 'sw' ? 'Vipi naweza kuchangia M-Supu?' : 'How can I contribute to M-Supu?',
         language === 'sw' ? 'Lini mtoto wangu anahitaji chanjo?' : 'When does my child need vaccines?'
+      ],
+      rider: [
+        language === 'sw' ? 'Ninahitaji kuripoti dharura' : 'I need to report an emergency',
+        language === 'sw' ? 'Vipi naweza kupata pointi zaidi?' : 'How can I earn more points?',
+        language === 'sw' ? 'Ninahitaji msaada na ramani' : 'I need help with the map'
+      ],
+      chv: [
+        language === 'sw' ? 'Vipi naweza kuongeza kaya mpya?' : 'How can I add a new household?',
+        language === 'sw' ? 'Ninahitaji kuidhinisha usafiri' : 'I need to approve transport',
+        language === 'sw' ? 'Vipi naweza kuripoti tahadhari?' : 'How can I report an alert?'
+      ],
+      health_worker: [
+        language === 'sw' ? 'Vipi naweza kuongeza mgonjwa mpya?' : 'How can I add a new patient?',
+        language === 'sw' ? 'Ninahitaji kuangalia hifadhi ya chanjo' : 'I need to check vaccine inventory',
+        language === 'sw' ? 'Vipi naweza kutumia skana ya QR?' : 'How can I use the QR scanner?'
+      ],
+      admin: [
+        language === 'sw' ? 'Vipi naweza kuongeza mtumiaji mpya?' : 'How can I add a new user?',
+        language === 'sw' ? 'Ninahitaji kuona takwimu za mfumo' : 'I need to see system analytics',
+        language === 'sw' ? 'Vipi naweza kubadilisha mipangilio?' : 'How can I change settings?'
       ]
     };
     
-    return suggestions[currentDashboard as keyof typeof suggestions] || suggestions['Caregivers Dashboard'];
+    return suggestions[userRole as keyof typeof suggestions] || suggestions.community;
   };
 
-  const handleSuggestedQuestion = (question: string) => {
-    setInputText(question);
-    setShowSuggestions(false);
+  const handleSuggestion = (suggestion: string) => {
+    setInputText(suggestion);
   };
-
-  const [showSuggestions, setShowSuggestions] = useState(true);
 
   return (
     <>
@@ -290,7 +172,7 @@ RESPONSE GUIDELINES:
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg flex items-center justify-center z-50"
         >
-          <Brain className="w-6 h-6" />
+          <MessageSquare className="w-6 h-6" />
         </motion.button>
       )}
 
@@ -313,14 +195,9 @@ RESPONSE GUIDELINES:
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Brain className="w-5 h-5 text-white" />
-                <div>
-                  <h3 className="text-white font-bold">
-                    {language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}
-                  </h3>
-                  <p className="text-white/80 text-xs">
-                    {getCurrentDashboardContext()}
-                  </p>
-                </div>
+                <h3 className="text-white font-bold">
+                  {language === 'sw' ? 'Msaidizi wa ParaBoda' : 'ParaBoda Assistant'}
+                </h3>
               </div>
               <div className="flex items-center space-x-2">
                 <button 
@@ -358,7 +235,7 @@ RESPONSE GUIDELINES:
                           <div className="flex items-center space-x-1 mb-1">
                             <Brain className="w-4 h-4 text-purple-600" />
                             <span className="text-xs font-medium text-purple-600">
-                              ParaBoda-AI
+                              {language === 'sw' ? 'Msaidizi' : 'Assistant'}
                             </span>
                           </div>
                         )}
@@ -378,7 +255,7 @@ RESPONSE GUIDELINES:
                       <div className="bg-white border border-gray-200 p-3 rounded-lg flex items-center space-x-2">
                         <Loader className="w-4 h-4 text-purple-600 animate-spin" />
                         <span className="text-sm text-gray-600">
-                          {language === 'sw' ? 'ParaBoda-AI inafikiri...' : 'ParaBoda-AI is thinking...'}
+                          {language === 'sw' ? 'Inaandika...' : 'Typing...'}
                         </span>
                       </div>
                     </motion.div>
@@ -389,19 +266,19 @@ RESPONSE GUIDELINES:
             )}
 
             {/* Quick Suggestions */}
-            {!isMinimized && showSuggestions && messages.length === 1 && (
+            {!isMinimized && messages.length === 1 && (
               <div className="px-4 py-2 bg-blue-50 border-t border-blue-100">
                 <p className="text-xs text-blue-700 mb-2 font-medium">
-                  {language === 'sw' ? 'Maswali Yanayopendekezwa:' : 'Suggested Questions:'}
+                  {language === 'sw' ? 'Maswali ya Haraka:' : 'Quick Questions:'}
                 </p>
-                <div className="space-y-2">
-                  {getQuickSuggestions().map((question, index) => (
+                <div className="flex flex-wrap gap-2">
+                  {getQuickSuggestions().map((suggestion, index) => (
                     <button
                       key={index}
-                      onClick={() => handleSuggestedQuestion(question)}
-                      className="w-full text-left p-2 bg-white rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium text-gray-700 flex items-center space-x-2"
+                      onClick={() => handleSuggestion(suggestion)}
+                      className="text-xs bg-white border border-blue-200 text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
                     >
-                      <span>{question}</span>
+                      {suggestion}
                     </button>
                   ))}
                 </div>
@@ -427,7 +304,7 @@ RESPONSE GUIDELINES:
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={language === 'sw' ? 'Andika swali lako...' : 'Type your question...'}
+                    placeholder={language === 'sw' ? 'Andika ujumbe wako...' : 'Type your message...'}
                     className="flex-1 py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={isLoading}
                   />

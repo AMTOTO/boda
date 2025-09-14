@@ -4,23 +4,15 @@ import { useAuth, UserRole } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  role?: UserRole;
+  role: UserRole;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  // Special handling for admin route
-  if (role === 'admin') {
-    const isSuperAdmin = user?.email === 'admin@paraboda.com' || user?.role === 'admin';
-    if (!isSuperAdmin) {
-      return <Navigate to="/" replace />;
-    }
-  }
-
-  // Check if we're in preview mode (no authentication required for non-admin)
-  const isPreviewMode = role !== 'admin'; // Preview mode for all except admin
+  // Check if we're in preview mode (no authentication required)
+  const isPreviewMode = true; // Always allow preview mode for demo
 
   if (isLoading) {
     return (
@@ -34,7 +26,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role }
   }
 
   // Allow access in preview mode or if user is authenticated with correct role
-  if (isPreviewMode || (user && (!role || user.role === role))) {
+  if (isPreviewMode || (user && user.role === role)) {
     return <>{children}</>;
   }
 

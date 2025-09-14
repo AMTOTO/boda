@@ -1,707 +1,974 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Header } from '../common/Header';
-import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { useData } from '../../contexts/DataContext';
-import { useCurrency } from '../../contexts/CurrencyContext';
-import { EmergencyReportModal } from '../common/EmergencyReportModal';
+import { StatsCard } from '../common/StatsCard';
+import { Modal } from '../common/Modal';
+import { ToastContainer } from '../common/Toast';
 import { ServiceRequestModal } from '../common/ServiceRequestModal';
-import { BSenseAI } from '../common/BSenseAI';
-import { QRScanner } from '../common/QRScanner';
-import { RewardsModal } from '../common/RewardsModal';
 import { DepositModal } from '../common/DepositModal';
-import { CreditProfileCard } from '../wallet/CreditProfileCard';
-import { CreditCoachChat } from '../wallet/CreditCoachChat';
-import { MedicalLoanOptions, LoanApplicationForm, LoanPaymentForm } from '../wallet/loans';
-import { AddSavingsForm } from '../wallet/AddSavingsForm';
-import { SHAContributionForm, SHALoanRequestForm } from '../wallet/sha';
-import { CreditReportModal } from '../wallet/CreditReportModal';
+import { RewardsModal } from '../common/RewardsModal';
+import { CameraCapture } from '../common/CameraCapture';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { BSenseAI } from '../common/BSenseAI';
 import { 
-  AlertTriangle, 
-  Bike, 
   Heart, 
-  Brain, 
-  QrCode,
-  Wallet,
-  Star,
+  Bike, 
+  Award, 
   DollarSign,
-  CreditCard,
-  PiggyBank,
-  FileText,
-  Shield,
-  Award,
-  Car,
-  Stethoscope,
+  Activity,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Phone,
+  MessageSquare,
   Plus,
-  Eye
+  Star,
+  Target,
+  Zap,
+  Bell,
+  Eye,
+  Camera,
+  Mic,
+  Upload,
+  Send,
+  Users,
+  Stethoscope,
+  Shield,
+  Calendar,
+  FileText,
+  Navigation,
+  Compass,
+  Battery,
+  Signal,
+  Wifi,
+  Volume2,
+  Brain,
+  UserCheck,
+  Baby,
+  Thermometer,
+  Scale,
+  Gift,
+  Package,
+  Route,
+  Timer,
+  Settings,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  Download,
+  Share2,
+  AlertTriangle
 } from 'lucide-react';
 
 export const CommunityDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { language } = useLanguage();
-  const { formatAmount } = useCurrency();
-  const { addNotification, addRideRequest, communityFunds } = useData();
+  const { 
+    rideRequests, 
+    healthAlerts, 
+    mythReports, 
+    addRideRequest, 
+    addMythReport,
+    communityFunds,
+    addToMSupu,
+    contributeItems
+  } = useData();
   
-  // Modal states
-  const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [emergencyType, setEmergencyType] = useState<'medical' | 'accident' | 'outbreak' | 'weather'>('medical');
-  const [selectedLoanType, setSelectedLoanType] = useState<string>('');
-  const [showCreditCoach, setShowCreditCoach] = useState(false);
+  const { t, language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraContext, setCameraContext] = useState<'deposit' | 'health' | 'transport'>('deposit');
+  const [showParabodaAI, setShowParabodaAI] = useState(false);
+  const [userPoints, setUserPoints] = useState(user?.points || 150);
+  const [nearbyRiders, setNearbyRiders] = useState([
+    { id: '1', name: 'John M.', distance: '0.8 km', eta: '3 min', rating: 4.8 },
+    { id: '2', name: 'Sarah K.', distance: '1.2 km', eta: '5 min', rating: 4.9 },
+    { id: '3', name: 'David O.', distance: '2.5 km', eta: '8 min', rating: 4.7 }
+  ]);
+  
+  const [toasts, setToasts] = useState<Array<{ id: string; title: string; message: string; type: 'success' | 'warning' | 'error' | 'info' }>>([]);
 
-  // User points for rewards
-  const userPoints = user?.points || 150;
-
-  // Mock wallet data based on user
-  const walletData = {
-    balance: 15750,
-    savings: Math.floor(communityFunds * 0.1),
-    creditScore: Math.min(850, 300 + (userPoints * 2)),
-    eligibilityStatus: user?.level === 'Gold' ? 'approved' : user?.level === 'Silver' ? 'pending' : 'not_assessed',
-    loanReadiness: Math.min(100, 40 + userPoints / 10),
-    trustLevel: user?.level === 'Platinum' ? 'platinum' : user?.level === 'Gold' ? 'gold' : user?.level === 'Silver' ? 'silver' : 'bronze'
+  const showToast = (title: string, message: string, type: 'success' | 'warning' | 'error' | 'info') => {
+    const id = `toast_${Date.now()}`;
+    setToasts(prev => [...prev, { id, title, message, type }]);
   };
 
-  const handleEmergencyRequest = (type: 'medical' | 'accident') => {
-    setEmergencyType(type);
-    setActiveModal('emergencyReport');
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const tabs = [
+    { id: 'overview', name: t('nav.overview'), icon: Activity, emoji: '📊' },
+    { id: 'health', name: t('nav.health'), icon: Heart, emoji: '❤️' },
+    { id: 'transport', name: t('nav.transport'), icon: Bike, emoji: '🏍️' },
+    { id: 'rewards', name: t('nav.rewards'), icon: Award, emoji: '🏆' },
+    { id: 'wallet', name: t('nav.wallet'), icon: DollarSign, emoji: '💰' }
+  ];
+
+  // Community member statistics
+  const communityStats = {
+    healthPoints: userPoints,
+    ridesTaken: 12,
+    mSupuContribution: 2500,
+    nextAppointment: '2024-02-15',
+    upcomingVaccines: 1,
+    pendingRides: rideRequests.filter(req => req.status === 'pending' && req.requestedBy === user?.name).length
   };
 
   const handleServiceRequest = (serviceData: any) => {
     addRideRequest({
-      type: serviceData.urgency === 'high' ? 'emergency' : 'routine',
+      type: serviceData.serviceId,
       patientName: serviceData.patientName,
       pickup: serviceData.pickupLocation,
       destination: serviceData.destination,
       urgency: serviceData.urgency,
       status: 'pending',
       requestedBy: user?.name || 'Community Member',
-      cost: serviceData.estimatedCost || 0,
+      cost: serviceData.estimatedCost || 500,
       notes: serviceData.additionalNotes
     });
+
+    setShowServiceModal(false);
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ombi la usafiri limewasilishwa' : 'Transport request submitted',
+      'success'
+    );
+  };
+
+  const handleDeposit = (type: 'cash' | 'items', amount: number, description?: string) => {
+    if (type === 'cash') {
+      addToMSupu(amount);
+    } else {
+      contributeItems(description || 'Item contribution', amount);
+    }
+
+    showToast(
+      t('message.success'),
+      language === 'sw' 
+        ? `Mchango wa ${type === 'cash' ? 'fedha' : 'vitu'} umewasilishwa` 
+        : `${type === 'cash' ? 'Cash' : 'Item'} contribution submitted`,
+      'success'
+    );
+  };
+
+  const handleRedeemReward = (item: any) => {
+    setUserPoints(prev => prev - item.points);
     
-    addNotification({
-      title: language === 'sw' ? 'Ombi Limewasilishwa' : 'Request Submitted',
-      message: language === 'sw' ? 'Ombi lako la huduma limewasilishwa' : 'Your service request has been submitted',
-      type: 'success',
-      read: false
+    showToast(
+      t('message.success'),
+      language === 'sw' 
+        ? `Umefanikiwa kuchukua ${language === 'sw' ? item.nameSwahili : item.name}` 
+        : `Successfully redeemed ${item.name}`,
+      'success'
+    );
+  };
+
+  const handleCameraCapture = (imageData: string, file: File) => {
+    switch (cameraContext) {
+      case 'deposit':
+        showToast(
+          language === 'sw' ? 'Picha ya Mchango Imehifadhiwa' : 'Deposit Photo Saved',
+          language === 'sw' ? 'Picha ya mchango wako imehifadhiwa' : 'Your contribution photo has been saved',
+          'success'
+        );
+        break;
+      case 'health':
+        showToast(
+          language === 'sw' ? 'Picha ya Afya Imehifadhiwa' : 'Health Photo Saved',
+          language === 'sw' ? 'Picha ya hali ya afya imehifadhiwa' : 'Health condition photo has been saved',
+          'success'
+        );
+        break;
+      case 'transport':
+        showToast(
+          language === 'sw' ? 'Picha ya Usafiri Imehifadhiwa' : 'Transport Photo Saved',
+          language === 'sw' ? 'Picha ya usafiri imehifadhiwa' : 'Transport photo has been saved',
+          'success'
+        );
+        break;
+    }
+    setShowCameraModal(false);
+  };
+
+  const openCamera = (context: 'deposit' | 'health' | 'transport') => {
+    setCameraContext(context);
+    setShowCameraModal(true);
+  };
+
+  const reportMyth = (mythText: string) => {
+    addMythReport({
+      category: 'general',
+      content: mythText,
+      location: user?.location || 'Unknown',
+      reportedBy: user?.name || 'Community Member',
+      verified: false,
+      debunked: false
     });
     
-    setActiveModal(null);
-  };
-
-  const handleEmergencySubmit = (reportData: any) => {
-    addNotification({
-      title: language === 'sw' ? 'Ripoti ya Dharura Imewasilishwa' : 'Emergency Report Submitted',
-      message: language === 'sw' ? 'Ripoti yako ya dharura imewasilishwa kwa CHV' : 'Your emergency report has been submitted to CHV',
-      type: 'warning',
-      read: false
-    });
-    
-    setActiveModal(null);
-  };
-
-  const handleRewardsRedeem = (item: any) => {
-    addNotification({
-      title: language === 'sw' ? 'Zawadi Imechukuliwa' : 'Reward Redeemed',
-      message: language === 'sw' 
-        ? `Umechukua ${item.nameSwahili || item.name}`
-        : `You redeemed ${item.name}`,
-      type: 'success',
-      read: false
-    });
-    setActiveModal(null);
-  };
-
-  const handleDeposit = (type: string, amount: number, description: string, photoUrl?: string) => {
-    addNotification({
-      title: language === 'sw' ? 'Mchango Umeongezwa' : 'Contribution Added',
-      message: language === 'sw' 
-        ? `Mchango wa ${formatAmount(amount)} umeongezwa`
-        : `Contribution of ${formatAmount(amount)} added`,
-      type: 'success',
-      read: false
-    });
-    setActiveModal(null);
-  };
-
-  const handleModalClose = () => {
-    setActiveModal(null);
-    setSelectedLoanType('');
-    setShowCreditCoach(false);
-  };
-
-  const handleModalSuccess = () => {
-    handleModalClose();
-  };
-
-  const handleLoanApplication = (loanType: string) => {
-    setSelectedLoanType(loanType);
-    setActiveModal('loanApplication');
+    showToast(
+      t('message.success'),
+      language === 'sw' ? 'Ripoti ya uwongo imewasilishwa' : 'Myth report submitted',
+      'success'
+    );
   };
 
   return (
     <div className="min-h-screen dashboard-bg-community">
       <Header 
-        title={language === 'sw' ? 'Walezi' : 'Caregivers'}
-        subtitle={language === 'sw' ? 'Huduma za afya na usafiri' : 'Health and transport services'}
+        title={language === 'sw' ? 'Dashibodi ya Jamii' : 'Community Dashboard'}
+        subtitle={language === 'sw' ? `Karibu, ${user?.name}` : `Welcome, ${user?.name}`}
       />
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border-4 border-emerald-200">
-            <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {language === 'sw' ? `Karibu, ${user?.name}!` : `Welcome, ${user?.name}!`}
-            </h1>
-            <p className="text-lg text-gray-600 font-medium">
-              {language === 'sw' ? 'Chagua huduma unayohitaji' : 'Choose the service you need'}
-            </p>
-            <div className="mt-4 bg-emerald-100 rounded-2xl p-4 inline-block">
-              <p className="text-sm text-emerald-800 font-semibold">
-                {language === 'sw' ? 'Salio la jamii' : 'Community balance'}: {formatAmount(communityFunds)}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Main Action Buttons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Emergency Request */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            onClick={() => handleEmergencyRequest('medical')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-red-500 to-red-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🚨</div>
-            <AlertTriangle className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'DHARURA' : 'EMERGENCY'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Omba msaada wa haraka' : 'Request urgent help'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Request Transport */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => setActiveModal('serviceRequest')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🚲</div>
-            <Bike className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'USAFIRI' : 'TRANSPORT'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Omba usafiri wa afya' : 'Request health transport'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Health Services */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            onClick={() => setActiveModal('healthServices')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🏥</div>
-            <Heart className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'AFYA' : 'HEALTH'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Huduma za afya' : 'Health services'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* ParaBoda AI */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => setActiveModal('bsenseAI')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">🧠</div>
-            <Brain className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'MSAIDIZI' : 'AI HELPER'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Msaada wa afya' : 'Health assistance'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* QR Scanner */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            onClick={() => setActiveModal('qrScanner')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">📱</div>
-            <QrCode className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'SKANI' : 'SCAN'}
-              </div>
-              <div className="text-sm opacity-90">
-                {language === 'sw' ? 'Skani QR code' : 'Scan QR code'}
-              </div>
-            </div>
-          </motion.button>
-
-          {/* M-SUPU Wallet */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            onClick={() => setActiveModal('wallet')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
-          >
-            <div className="text-5xl">💰</div>
-            <Wallet className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {language === 'sw' ? 'M-SUPU' : 'M-SUPU'}
-              </div>
-              <div className="text-sm opacity-90">
-                {formatAmount(walletData.balance)}
-              </div>
-            </div>
-          </motion.button>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title={language === 'sw' ? 'Pointi za Afya' : 'Health Points'}
+            value={communityStats.healthPoints}
+            change="+25 this week"
+            changeType="positive"
+            icon={Award}
+            color="emerald"
+            delay={0}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Safari Zilizochukuliwa' : 'Rides Taken'}
+            value={communityStats.ridesTaken}
+            change="+3 this month"
+            changeType="positive"
+            icon={Bike}
+            color="blue"
+            delay={0.1}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Mchango wa M-Supu' : 'M-Supu Contribution'}
+            value={`KSh ${communityStats.mSupuContribution}`}
+            change="+500 last week"
+            changeType="positive"
+            icon={DollarSign}
+            color="purple"
+            delay={0.2}
+          />
+          <StatsCard
+            title={language === 'sw' ? 'Miadi Ijayo' : 'Next Appointment'}
+            value={new Date(communityStats.nextAppointment).toLocaleDateString()}
+            change={communityStats.upcomingVaccines > 0 ? `${communityStats.upcomingVaccines} vaccines due` : 'No vaccines due'}
+            changeType={communityStats.upcomingVaccines > 0 ? 'warning' : 'positive'}
+            icon={Calendar}
+            color="orange"
+            delay={0.3}
+          />
         </div>
 
-        {/* MSUPU Wallet Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mb-8"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-3">
-            <Wallet className="w-8 h-8 text-emerald-600" />
-            <span>{language === 'sw' ? 'M-SUPU Pochi - Muhtasari' : 'M-SUPU Wallet - Overview'}</span>
-          </h2>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Credit Profile Card */}
-            <CreditProfileCard
-              creditScore={walletData.creditScore}
-              savingsBalance={walletData.savings}
-              eligibilityStatus={walletData.eligibilityStatus as any}
-              loanReadiness={walletData.loanReadiness}
-              trustLevel={walletData.trustLevel as any}
-            />
-
-            {/* Quick Wallet Actions */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-6 border-4 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
-                {language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}
-              </h3>
-
-              <div className="grid grid-cols-1 gap-4">
-                {/* Apply for Loan */}
-                <button
-                  onClick={() => setActiveModal('medicalLoanOptions')}
-                  className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <DollarSign className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Omba Mkopo' : 'Apply for Loan'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Matibabu na usafiri' : 'Medical & transport'}</div>
-                  </div>
-                </button>
-
-                {/* Add Savings */}
-                <button
-                  onClick={() => setActiveModal('addSavings')}
-                  className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <PiggyBank className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Hifadhi ya jamii' : 'Community savings'}</div>
-                  </div>
-                </button>
-
-                {/* Loan Payment */}
-                <button
-                  onClick={() => setActiveModal('loanPayment')}
-                  className="w-full p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <CreditCard className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Lipa Mkopo' : 'Loan Payment'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Malipo ya mkopo' : 'Repay loan'}</div>
-                  </div>
-                </button>
-
-                {/* View Credit Report */}
-                <button
-                  onClick={() => setActiveModal('creditReport')}
-                  className="w-full p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <FileText className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Ripoti ya Mkopo' : 'Credit Report'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Historia na alama' : 'History & score'}</div>
-                  </div>
-                </button>
-
-                {/* Credit Coach */}
-                <button
-                  onClick={() => setShowCreditCoach(true)}
-                  className="w-full p-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-2xl hover:from-pink-600 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Brain className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Mkocha wa Mkopo' : 'Credit Coach'}</div>
-                    <div className="text-sm opacity-90">{language === 'sw' ? 'Ushauri wa kifedha' : 'Financial advice'}</div>
-                  </div>
-                </button>
-
-                {/* Rewards */}
-                <button
-                  onClick={() => setActiveModal('rewards')}
-                  className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
-                >
-                  <Award className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-bold">{language === 'sw' ? 'Zawadi' : 'Rewards'}</div>
-                    <div className="text-sm opacity-90">{userPoints} {language === 'sw' ? 'pointi' : 'points'}</div>
-                  </div>
-                </button>
-              </div>
-            </div>
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2 bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-xl border-4 border-emerald-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-emerald-100'
+                }`}
+              >
+                <span className="text-xl">{tab.emoji}</span>
+                <tab.icon className="w-5 h-5" />
+                <span className="hidden sm:inline">{tab.name}</span>
+              </button>
+            ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* SHA Section */}
+        {/* Tab Content */}
         <motion.div
+          key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mb-8"
+          transition={{ duration: 0.3 }}
         >
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-6 border-4 border-blue-200">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Shield className="w-7 h-7 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  {language === 'sw' ? 'Bima ya Afya ya Kijamii (SHA)' : 'Social Health Insurance (SHA)'}
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              {/* Quick Actions */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Zap className="w-6 h-6 text-emerald-500" />
+                  <span>{language === 'sw' ? 'Vitendo vya Haraka' : 'Quick Actions'}</span>
                 </h3>
-                <p className="text-gray-600">
-                  {language === 'sw' 
-                    ? 'Jiunge na bima ya afya ya jamii'
-                    : 'Join the community health insurance program'
-                  }
-                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => setShowServiceModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 hover:bg-blue-100 transition-all"
+                  >
+                    <Bike className="w-8 h-8 text-blue-600" />
+                    <span className="font-bold text-blue-800 text-center">
+                      {language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowParabodaAI(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-purple-50 border-2 border-purple-200 rounded-xl hover:border-purple-300 hover:bg-purple-100 transition-all"
+                  >
+                    <Brain className="w-8 h-8 text-purple-600" />
+                    <span className="font-bold text-purple-800 text-center">
+                      {language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowRewardsModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-yellow-50 border-2 border-yellow-200 rounded-xl hover:border-yellow-300 hover:bg-yellow-100 transition-all"
+                  >
+                    <Award className="w-8 h-8 text-yellow-600" />
+                    <span className="font-bold text-yellow-800 text-center">
+                      {language === 'sw' ? 'Zawadi' : 'Rewards'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowDepositModal(true)}
+                    className="flex flex-col items-center space-y-3 p-6 bg-green-50 border-2 border-green-200 rounded-xl hover:border-green-300 hover:bg-green-100 transition-all"
+                  >
+                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <span className="font-bold text-green-800 text-center">
+                      {language === 'sw' ? 'Changia M-Supu' : 'Contribute to M-Supu'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Nearby ParaBodas */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <MapPin className="w-6 h-6 text-emerald-500" />
+                  <span>{language === 'sw' ? 'ParaBodas za Karibu' : 'Nearby ParaBodas'}</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {nearbyRiders.map((rider) => (
+                    <div key={rider.id} className="border border-gray-200 rounded-xl p-4 hover:border-emerald-300 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-bold text-gray-900">{rider.name}</span>
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-medium">{rider.rating}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                          <p className="text-xs text-gray-500">{language === 'sw' ? 'Umbali' : 'Distance'}</p>
+                          <p className="font-medium">{rider.distance}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">ETA</p>
+                          <p className="font-medium">{rider.eta}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowServiceModal(true)}
+                        className="w-full bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition-colors text-sm font-bold"
+                      >
+                        {language === 'sw' ? 'Omba Usafiri' : 'Request Ride'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Health Tips */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <Heart className="w-6 h-6 text-emerald-500" />
+                  <span>{language === 'sw' ? 'Vidokezo vya Afya' : 'Health Tips'}</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-100">
+                    <div className="text-3xl mb-2">💧</div>
+                    <h4 className="font-bold text-blue-800 mb-2">
+                      {language === 'sw' ? 'Kunywa Maji ya Kutosha' : 'Stay Hydrated'}
+                    </h4>
+                    <p className="text-blue-600 text-sm">
+                      {language === 'sw' 
+                        ? 'Kunywa angalau lita 2 za maji kila siku kwa afya bora.'
+                        : 'Drink at least 2 liters of water daily for optimal health.'
+                      }
+                    </p>
+                  </div>
+                  
+                  <div className="bg-green-50 rounded-xl p-4 border-2 border-green-100">
+                    <div className="text-3xl mb-2">🥗</div>
+                    <h4 className="font-bold text-green-800 mb-2">
+                      {language === 'sw' ? 'Kula Matunda na Mboga' : 'Eat Fruits & Vegetables'}
+                    </h4>
+                    <p className="text-green-600 text-sm">
+                      {language === 'sw' 
+                        ? 'Kula angalau vipimo 5 vya matunda na mboga kila siku.'
+                        : 'Eat at least 5 servings of fruits and vegetables daily.'
+                      }
+                    </p>
+                  </div>
+                  
+                  <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-100">
+                    <div className="text-3xl mb-2">🧠</div>
+                    <h4 className="font-bold text-purple-800 mb-2">
+                      {language === 'sw' ? 'Punguza Msongo wa Mawazo' : 'Reduce Stress'}
+                    </h4>
+                    <p className="text-purple-600 text-sm">
+                      {language === 'sw' 
+                        ? 'Fanya mazoezi ya kupumua na kutafakari kila siku.'
+                        : 'Practice breathing exercises and meditation daily.'
+                      }
+                    </p>
+                  </div>
+                  
+                  <div className="bg-red-50 rounded-xl p-4 border-2 border-red-100">
+                    <div className="text-3xl mb-2">🦟</div>
+                    <h4 className="font-bold text-red-800 mb-2">
+                      {language === 'sw' ? 'Kinga ya Malaria' : 'Malaria Prevention'}
+                    </h4>
+                    <p className="text-red-600 text-sm">
+                      {language === 'sw' 
+                        ? 'Tumia chandarua kilichotibiwa kila usiku.'
+                        : 'Use treated mosquito nets every night.'
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Register & Contribute */}
-              <button
-                onClick={() => setActiveModal('shaContribution')}
-                className="p-6 border-2 border-blue-200 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all text-left min-h-[120px] flex items-center space-x-4"
-              >
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-2">
-                    {language === 'sw' ? 'Jiunge & Changia' : 'Register & Contribute'}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    {language === 'sw' 
-                      ? 'Tumia akiba zako za jamii kuchangia SHA'
-                      : 'Use your community savings to contribute to SHA'
-                    }
-                  </p>
-                </div>
-              </button>
+          {/* Health Tab */}
+          {activeTab === 'health' && (
+            <div className="space-y-6">
+              {/* Health Records */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+                  <FileText className="w-6 h-6 text-emerald-500" />
+                  <span>{language === 'sw' ? 'Rekodi za Afya' : 'Health Records'}</span>
+                </h3>
+                <div className="space-y-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'Ziara ya Mwisho' : 'Last Visit'}</h4>
+                      <span className="text-sm text-gray-500">2024-01-10</span>
+                    </div>
+                    <p className="text-gray-600 mb-3">{language === 'sw' ? 'Uchunguzi wa kawaida' : 'Routine checkup'}</p>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => openCamera('health')}
+                        className="flex items-center space-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span>{language === 'sw' ? 'Picha' : 'Photo'}</span>
+                      </button>
+                      <button
+                        onClick={() => setShowParabodaAI(true)}
+                        className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm font-bold"
+                      >
+                        <Brain className="w-4 h-4" />
+                        <span>{language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}</span>
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Request SHA Loan */}
-              <button
-                onClick={() => setActiveModal('shaLoanRequest')}
-                className="p-6 border-2 border-green-200 rounded-2xl hover:border-green-400 hover:bg-green-50 transition-all text-left min-h-[120px] flex items-center space-x-4"
-              >
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'Chanjo Zinazokuja' : 'Upcoming Vaccines'}</h4>
+                      <span className="text-sm text-gray-500">2024-02-15</span>
+                    </div>
+                    <p className="text-gray-600 mb-3">{language === 'sw' ? 'Chanjo ya Polio kwa mtoto' : 'Polio vaccine for child'}</p>
+                    <button
+                      onClick={() => setShowServiceModal(true)}
+                      className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-bold"
+                    >
+                      <Bike className="w-4 h-4" />
+                      <span>{language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}</span>
+                    </button>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'Ripoti Uwongo wa Afya' : 'Report Health Myth'}</h4>
+                    </div>
+                    <div className="flex space-y-3 flex-col">
+                      <input
+                        type="text"
+                        placeholder={language === 'sw' ? 'Andika uwongo wa afya ulioskia...' : 'Type a health myth you heard...'}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            reportMyth((e.target as HTMLInputElement).value);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }}
+                      />
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => openCamera('health')}
+                          className="flex items-center space-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'Picha' : 'Photo'}</span>
+                        </button>
+                        <button
+                          onClick={() => setShowParabodaAI(true)}
+                          className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm font-bold"
+                        >
+                          <Brain className="w-4 h-4" />
+                          <span>{language === 'sw' ? 'ParaBoda-AI' : 'ParaBoda-AI'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-2">
-                    {language === 'sw' ? 'Omba Mkopo wa SHA' : 'Request SHA Loan'}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    {language === 'sw' 
-                      ? 'Pata mkopo wa kujiunga na SHA'
-                      : 'Get a loan to register for SHA'
-                    }
-                  </p>
-                </div>
-              </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Transport Tab */}
+          {activeTab === 'transport' && (
+            <div className="space-y-6">
+              {/* Request Transport */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                    <Bike className="w-6 h-6 text-emerald-500" />
+                    <span>{language === 'sw' ? 'Omba Usafiri' : 'Request Transport'}</span>
+                  </h3>
+                  <button
+                    onClick={() => setShowServiceModal(true)}
+                    className="flex items-center space-x-2 bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 transition-colors font-bold"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>{language === 'sw' ? 'Ombi Jipya' : 'New Request'}</span>
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'ParaBodas za Karibu' : 'Nearby ParaBodas'}</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {nearbyRiders.map((rider) => (
+                        <div key={rider.id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">{rider.name}</span>
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              <span className="text-sm">{rider.rating}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-500">
+                            <span>{rider.distance}</span>
+                            <span>ETA: {rider.eta}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'Maombi ya Hivi Karibuni' : 'Recent Requests'}</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {rideRequests.filter(req => req.requestedBy === user?.name).slice(0, 3).map((request) => (
+                        <div key={request.id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">{request.type.replace('_', ' ')}</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                              request.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {request.status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{request.pickup} → {request.destination}</p>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">{new Date(request.timestamp).toLocaleDateString()}</span>
+                            <span className="font-medium text-emerald-600">KSh {request.cost}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-gray-900">{language === 'sw' ? 'Ripoti Dharura' : 'Report Emergency'}</h4>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => setShowServiceModal(true)}
+                        className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-bold"
+                      >
+                        <AlertTriangle className="w-4 h-4 inline mr-2" />
+                        {language === 'sw' ? 'Omba Usafiri wa Dharura' : 'Request Emergency Transport'}
+                      </button>
+                      <button
+                        onClick={() => openCamera('transport')}
+                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rewards Tab */}
+          {activeTab === 'rewards' && (
+            <div className="space-y-6">
+              {/* Rewards Overview */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                    <Award className="w-6 h-6 text-emerald-500" />
+                    <span>{language === 'sw' ? 'Zawadi na Pointi' : 'Rewards & Points'}</span>
+                  </h3>
+                  <button
+                    onClick={() => setShowRewardsModal(true)}
+                    className="flex items-center space-x-2 bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 transition-colors font-bold"
+                  >
+                    <Gift className="w-5 h-5" />
+                    <span>{language === 'sw' ? 'Duka la Zawadi' : 'Rewards Store'}</span>
+                  </button>
+                </div>
+                
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 rounded-2xl text-white text-center mb-6">
+                  <div className="flex items-center justify-center space-x-3 mb-2">
+                    <Award className="w-8 h-8" />
+                    <span className="text-3xl font-black">{userPoints}</span>
+                    <Star className="w-8 h-8" />
+                  </div>
+                  <p className="text-lg font-bold">
+                    {language === 'sw' ? 'Pointi Zako za Zawadi' : 'Your Reward Points'}
+                  </p>
+                  <div className="mt-3 inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+                    <span className="font-bold">
+                      {language === 'sw' ? 'Kiwango: Shaba' : 'Level: Bronze'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-3xl mb-2">🏆</div>
+                    <h4 className="font-bold text-gray-900 mb-1">
+                      {language === 'sw' ? 'Pointi Zilizopatikana' : 'Points Earned'}
+                    </h4>
+                    <p className="text-2xl font-bold text-emerald-600">350</p>
+                    <p className="text-sm text-gray-500">
+                      {language === 'sw' ? 'Jumla' : 'Total'}
+                    </p>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-3xl mb-2">🎁</div>
+                    <h4 className="font-bold text-gray-900 mb-1">
+                      {language === 'sw' ? 'Pointi Zilizotumika' : 'Points Spent'}
+                    </h4>
+                    <p className="text-2xl font-bold text-blue-600">200</p>
+                    <p className="text-sm text-gray-500">
+                      {language === 'sw' ? 'Jumla' : 'Total'}
+                    </p>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-3xl mb-2">⭐</div>
+                    <h4 className="font-bold text-gray-900 mb-1">
+                      {language === 'sw' ? 'Kiwango Kijacho' : 'Next Level'}
+                    </h4>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {language === 'sw' ? 'Fedha' : 'Silver'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {language === 'sw' ? 'Pointi 350 zaidi' : '350 more points'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* How to Earn Points */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">
+                  {language === 'sw' ? 'Jinsi ya Kupata Pointi' : 'How to Earn Points'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <Heart className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <h4 className="font-bold text-gray-900">
+                        {language === 'sw' ? 'Hudhurio la Afya' : 'Health Visit'}
+                      </h4>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2">
+                      {language === 'sw' 
+                        ? 'Hudhuria miadi yako ya afya kwa wakati'
+                        : 'Attend your health appointments on time'
+                      }
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">
+                        {language === 'sw' ? 'Kila miadi' : 'Per appointment'}
+                      </span>
+                      <span className="font-bold text-emerald-600">+25 pts</span>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Baby className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <h4 className="font-bold text-gray-900">
+                        {language === 'sw' ? 'Chanjo za Watoto' : 'Child Vaccinations'}
+                      </h4>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2">
+                      {language === 'sw' 
+                        ? 'Hakikisha mtoto wako anapata chanjo zote kwa wakati'
+                        : 'Ensure your child gets all vaccinations on time'
+                      }
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">
+                        {language === 'sw' ? 'Kila chanjo' : 'Per vaccination'}
+                      </span>
+                      <span className="font-bold text-blue-600">+50 pts</span>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <DollarSign className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h4 className="font-bold text-gray-900">
+                        {language === 'sw' ? 'Changia M-Supu' : 'Contribute to M-Supu'}
+                      </h4>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2">
+                      {language === 'sw' 
+                        ? 'Changia fedha au vitu kwenye M-Supu ya jamii'
+                        : 'Contribute cash or items to community M-Supu'
+                      }
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">
+                        {language === 'sw' ? 'Kwa kila KSh 100' : 'Per KSh 100'}
+                      </span>
+                      <span className="font-bold text-purple-600">+10 pts</span>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-red-600" />
+                      </div>
+                      <h4 className="font-bold text-gray-900">
+                        {language === 'sw' ? 'Ripoti Uwongo wa Afya' : 'Report Health Myths'}
+                      </h4>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2">
+                      {language === 'sw' 
+                        ? 'Saidia kupambana na uwongo kuhusu afya katika jamii'
+                        : 'Help combat health misinformation in the community'
+                      }
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">
+                        {language === 'sw' ? 'Kwa kila ripoti' : 'Per report'}
+                      </span>
+                      <span className="font-bold text-red-600">+15 pts</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wallet Tab */}
+          {activeTab === 'wallet' && (
+            <div className="space-y-6">
+              {/* M-Supu Overview */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                    <DollarSign className="w-6 h-6 text-emerald-500" />
+                    <span>{language === 'sw' ? 'M-Supu ya Jamii' : 'Community M-Supu'}</span>
+                  </h3>
+                  <button
+                    onClick={() => setShowDepositModal(true)}
+                    className="flex items-center space-x-2 bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 transition-colors font-bold"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>{language === 'sw' ? 'Changia' : 'Contribute'}</span>
+                  </button>
+                </div>
+                
+                <div className="text-center mb-8">
+                  <p className="text-4xl font-bold text-emerald-600 mb-2">KSh {communityFunds.toLocaleString()}</p>
+                  <p className="text-gray-600">
+                    {language === 'sw' ? 'Jumla ya Fedha za Jamii' : 'Total Community Funds'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-6 bg-green-50 rounded-xl">
+                    <h4 className="font-bold text-green-800 mb-2">
+                      {language === 'sw' ? 'Mchango Wako' : 'Your Contribution'}
+                    </h4>
+                    <p className="text-2xl font-bold text-green-600">KSh {communityStats.mSupuContribution}</p>
+                  </div>
+                  <div className="text-center p-6 bg-blue-50 rounded-xl">
+                    <h4 className="font-bold text-blue-800 mb-2">
+                      {language === 'sw' ? 'Wachangiaji' : 'Contributors'}
+                    </h4>
+                    <p className="text-2xl font-bold text-blue-600">47</p>
+                  </div>
+                  <div className="text-center p-6 bg-purple-50 rounded-xl">
+                    <h4 className="font-bold text-purple-800 mb-2">
+                      {language === 'sw' ? 'Wanufaika' : 'Beneficiaries'}
+                    </h4>
+                    <p className="text-2xl font-bold text-purple-600">23</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contribution Methods */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border-4 border-emerald-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">
+                  {language === 'sw' ? 'Njia za Kuchangia' : 'Contribution Methods'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <DollarSign className="w-7 h-7 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900">
+                          {language === 'sw' ? 'Changia Fedha' : 'Contribute Cash'}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {language === 'sw' ? 'Lipa kupitia M-Pesa au benki' : 'Pay via M-Pesa or bank transfer'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowDepositModal(true);
+                      }}
+                      className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-bold"
+                    >
+                      {language === 'sw' ? 'Changia Fedha' : 'Contribute Cash'}
+                    </button>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl p-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Package className="w-7 h-7 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900">
+                          {language === 'sw' ? 'Changia Vitu' : 'Contribute Items'}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {language === 'sw' ? 'Changia chakula, nguo, au vitu vingine' : 'Contribute food, clothes, or other items'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => {
+                          setShowDepositModal(true);
+                        }}
+                        className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-bold"
+                      >
+                        {language === 'sw' ? 'Changia Vitu' : 'Contribute Items'}
+                      </button>
+                      <button
+                        onClick={() => openCamera('deposit')}
+                        className="px-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Camera className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
-      {/* All Modals */}
-      <EmergencyReportModal
-        isOpen={activeModal === 'emergencyReport'}
-        onClose={() => setActiveModal(null)}
-        onSubmit={handleEmergencySubmit}
-        emergencyType={emergencyType}
-      />
-
+      {/* Service Request Modal */}
       <ServiceRequestModal
-        isOpen={activeModal === 'serviceRequest'}
-        onClose={() => setActiveModal(null)}
+        isOpen={showServiceModal}
+        onClose={() => setShowServiceModal(false)}
         onRequest={handleServiceRequest}
       />
 
-      <BSenseAI
-        isOpen={activeModal === 'bsenseAI'}
-        onClose={() => setActiveModal(null)}
-        userRole="community"
-      />
-
-      <QRScanner
-        isOpen={activeModal === 'qrScanner'}
-        onClose={() => setActiveModal(null)}
-        onScan={(data) => {
-          console.log('QR Scanned:', data);
-          setActiveModal(null);
-          addNotification({
-            title: language === 'sw' ? 'QR Code Imesomwa' : 'QR Code Scanned',
-            message: language === 'sw' ? 'Taarifa zimepatikana' : 'Information retrieved',
-            type: 'success',
-            read: false
-          });
-        }}
-      />
-
-      <RewardsModal
-        isOpen={activeModal === 'rewards'}
-        onClose={() => setActiveModal(null)}
-        userPoints={userPoints}
-        onRedeem={handleRewardsRedeem}
-      />
-
+      {/* Deposit Modal */}
       <DepositModal
-        isOpen={activeModal === 'deposit'}
-        onClose={() => setActiveModal(null)}
+        isOpen={showDepositModal}
+        onClose={() => setShowDepositModal(false)}
         onDeposit={handleDeposit}
       />
 
-      {/* Wallet Modals */}
-      <MedicalLoanOptions
-        isOpen={activeModal === 'medicalLoanOptions'}
-        onClose={handleModalClose}
-        onLoanSelect={handleLoanApplication}
+      {/* Rewards Modal */}
+      <RewardsModal
+        isOpen={showRewardsModal}
+        onClose={() => setShowRewardsModal(false)}
+        userPoints={userPoints}
+        onRedeem={handleRedeemReward}
       />
 
-      <LoanApplicationForm
-        isOpen={activeModal === 'loanApplication'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        loanType={selectedLoanType}
+      {/* Camera Modal */}
+      <CameraCapture
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+        title={
+          cameraContext === 'deposit' ? (language === 'sw' ? 'Piga Picha ya Mchango' : 'Take Contribution Photo') :
+          cameraContext === 'health' ? (language === 'sw' ? 'Piga Picha ya Afya' : 'Take Health Photo') :
+          (language === 'sw' ? 'Piga Picha ya Usafiri' : 'Take Transport Photo')
+        }
+        context={
+          cameraContext === 'deposit' ? (language === 'sw' ? 'Piga picha ya mchango wako' : 'Capture your contribution') :
+          cameraContext === 'health' ? (language === 'sw' ? 'Piga picha ya hali ya afya' : 'Capture health condition') :
+          (language === 'sw' ? 'Piga picha ya usafiri' : 'Capture transport')
+        }
       />
 
-      <AddSavingsForm
-        isOpen={activeModal === 'addSavings'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        currentBalance={walletData.balance}
+      {/* ParaBoda-AI Modal */}
+      <BSenseAI
+        isOpen={showParabodaAI}
+        onClose={() => setShowParabodaAI(false)}
+        userRole="community"
       />
 
-      <LoanPaymentForm
-        isOpen={activeModal === 'loanPayment'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-      />
-
-      <CreditReportModal
-        isOpen={activeModal === 'creditReport'}
-        onClose={handleModalClose}
-      />
-
-      <SHAContributionForm
-        isOpen={activeModal === 'shaContribution'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-        currentBalance={walletData.savings}
-      />
-
-      <SHALoanRequestForm
-        isOpen={activeModal === 'shaLoanRequest'}
-        onClose={handleModalClose}
-        onSuccess={handleModalSuccess}
-      />
-
-      <CreditCoachChat
-        isOpen={showCreditCoach}
-        onClose={() => setShowCreditCoach(false)}
-        userCreditScore={walletData.creditScore}
-        userSavings={walletData.savings}
-      />
-
-      {/* Wallet Modal */}
-      {activeModal === 'wallet' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Wallet className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {language === 'sw' ? 'M-Supu Pochi' : 'M-Supu Wallet'}
-              </h2>
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl">
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                  {formatAmount(walletData.balance)}
-                </div>
-                <p className="text-emerald-800 dark:text-emerald-200 font-medium">
-                  {language === 'sw' ? 'Salio Lako' : 'Your Balance'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => setActiveModal('addSavings')}
-                className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <PiggyBank className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ongeza Akiba' : 'Add Savings'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('rewards')}
-                className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Award className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Zawadi' : 'Rewards'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal('creditReport')}
-                className="w-full p-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl hover:from-indigo-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Eye className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Ripoti ya Mkopo' : 'Credit Report'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-              >
-                {language === 'sw' ? 'Funga' : 'Close'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Health Services Modal */}
-      {activeModal === 'healthServices' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {language === 'sw' ? 'Huduma za Afya' : 'Health Services'}
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => {
-                  setActiveModal('serviceRequest');
-                }}
-                className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <Stethoscope className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Huduma za Mimba' : 'Antenatal Care'}</span>
-              </button>
-              
-              <button
-                onClick={() => {
-                  setActiveModal('serviceRequest');
-                }}
-                className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <div className="text-2xl">💉</div>
-                <span className="font-bold text-lg">{language === 'sw' ? 'Chanjo za Watoto' : 'Child Vaccinations'}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setEmergencyType('medical');
-                  setActiveModal('emergencyReport');
-                }}
-                className="w-full p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center justify-center space-x-3"
-              >
-                <AlertTriangle className="w-6 h-6" />
-                <span className="font-bold text-lg">{language === 'sw' ? 'Dharura ya Matibabu' : 'Medical Emergency'}</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-bold min-h-[60px]"
-              >
-                {language === 'sw' ? 'Funga' : 'Close'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

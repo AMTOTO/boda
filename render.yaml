@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: paraboda-translation-api
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: |
+      python -m pip install --upgrade pip
+      python -m pip install -r requirements.txt
+    startCommand: uvicorn api.translate:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: PORT
+        generateValue: true
+      - key: HF_TOKEN
+        value: "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"
+      - key: TRANSFORMERS_CACHE
+        value: "/opt/render/.cache"
+      - key: HF_HOME
+        value: "/opt/render/.cache"
+    healthCheckPath: /health
+    disk:
+      name: paraboda-model-cache
+      mountPath: /opt/render/.cache
+      sizeGB: 10

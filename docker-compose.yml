@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  paraboda-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+      - TRANSFORMERS_CACHE=/app/.cache
+      - HF_HOME=/app/.cache
+    volumes:
+      - model_cache:/app/.cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  model_cache:

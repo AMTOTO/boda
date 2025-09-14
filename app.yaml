@@ -1,0 +1,16 @@
+runtime: python311
+
+env_variables:
+  PYTHON_VERSION: "3.11"
+  HF_TOKEN: "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"
+
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+
+entrypoint: uvicorn api.translate:app --host 0.0.0.0 --port $PORT

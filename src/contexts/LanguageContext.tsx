@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translationService } from '../services/translationService';
 
-type Language = 'en' | 'sw' | 'fr' | 'rw' | 'rn' | 'am' | 'ln' | 'om' | 'so' | 'lg';
+export type Language = 'en' | 'sw' | 'ki' | 'luy' | 'luo' | 'kal' | 'kam' | 'mer' | 'mas' | 'som' | 'rw';
 
 interface LanguageContextType {
   language: Language;
@@ -18,14 +19,15 @@ interface LanguageContextType {
 const languages = [
   { code: 'en' as Language, name: 'English', nativeName: 'English', flag: '🇬🇧' },
   { code: 'sw' as Language, name: 'Kiswahili', nativeName: 'Kiswahili', flag: '🇰🇪' },
-  { code: 'fr' as Language, name: 'French', nativeName: 'Français', flag: '🇫🇷' },
   { code: 'rw' as Language, name: 'Kinyarwanda', nativeName: 'Ikinyarwanda', flag: '🇷🇼' },
-  { code: 'rn' as Language, name: 'Kirundi', nativeName: 'Ikirundi', flag: '🇧🇮' },
-  { code: 'am' as Language, name: 'Amharic', nativeName: 'አማርኛ', flag: '🇪🇹' },
-  { code: 'ln' as Language, name: 'Lingala', nativeName: 'Lingála', flag: '🇨🇩' },
-  { code: 'om' as Language, name: 'Oromo', nativeName: 'Afaan Oromoo', flag: '🇪🇹' },
-  { code: 'so' as Language, name: 'Somali', nativeName: 'Soomaali', flag: '🇸🇴' },
-  { code: 'lg' as Language, name: 'Luganda', nativeName: 'Luganda', flag: '🇺🇬' }
+  { code: 'ki' as Language, name: 'Kikuyu', nativeName: 'Gĩkũyũ', flag: '🇰🇪' },
+  { code: 'luy' as Language, name: 'Luhya', nativeName: 'Luluhya', flag: '🇰🇪' },
+  { code: 'luo' as Language, name: 'Luo', nativeName: 'Dholuo', flag: '🇰🇪' },
+  { code: 'kal' as Language, name: 'Kalenjin', nativeName: 'Kalenjin', flag: '🇰🇪' },
+  { code: 'kam' as Language, name: 'Kamba', nativeName: 'Kikamba', flag: '🇰🇪' },
+  { code: 'mer' as Language, name: 'Meru', nativeName: 'Kimeru', flag: '🇰🇪' },
+  { code: 'mas' as Language, name: 'Maasai', nativeName: 'Maa', flag: '🇰🇪' },
+  { code: 'som' as Language, name: 'Somali', nativeName: 'Soomaali', flag: '🇸🇴' }
 ];
 
 const translations = {
@@ -199,7 +201,58 @@ const translations = {
     'title.rider_dashboard': 'Rider Dashboard',
     'title.community_dashboard': 'Community Dashboard',
     'title.chv_dashboard': 'CHV Dashboard',
-    'title.health_worker_dashboard': 'Health Worker Dashboard'
+    'title.health_worker_dashboard': 'Health Worker Dashboard',
+    
+    // Analytics
+    'analytics.overview': 'Analytics Overview',
+    'analytics.system_performance': 'System Performance',
+    'analytics.user_growth': 'User Growth',
+    'analytics.ride_metrics': 'Ride Metrics',
+    'analytics.health_trends': 'Health Trends',
+    
+    // Settings
+    'settings.profile': 'Profile Settings',
+    'settings.notifications': 'Notifications',
+    'settings.security': 'Security',
+    'settings.backup': 'Backup & Restore',
+    'settings.language': 'Language',
+    'settings.system': 'System Settings',
+    
+    // Notifications
+    'notification.success': 'Success',
+    'notification.error': 'Error',
+    'notification.warning': 'Warning',
+    'notification.info': 'Information',
+    'notification.new_message': 'New Message',
+    'notification.appointment_reminder': 'Appointment Reminder',
+    'notification.ride_confirmed': 'Ride Confirmed',
+    'notification.points_earned': 'Points Earned',
+    
+    // QR Code
+    'qr.title': 'Your QR Code',
+    'qr.description': 'Show this at health facilities for quick identification',
+    'qr.download': 'Download QR Code',
+    'qr.share': 'Share QR Code',
+    
+    // Language Selection
+    'language.select': 'Select Language',
+    'language.current': 'Current Language',
+    'language.change': 'Change Language',
+    'language.auto_detect': 'Auto Detect',
+    
+    // Error Messages
+    'error.network': 'Network error. Please check your connection.',
+    'error.invalid_input': 'Invalid input. Please check your data.',
+    'error.permission_denied': 'Permission denied. Please contact administrator.',
+    'error.not_found': 'Resource not found.',
+    'error.server_error': 'Server error. Please try again later.',
+    
+    // Success Messages
+    'success.saved': 'Data saved successfully.',
+    'success.updated': 'Information updated successfully.',
+    'success.deleted': 'Item deleted successfully.',
+    'success.sent': 'Message sent successfully.',
+    'success.uploaded': 'File uploaded successfully.'
   },
   sw: {
     // Navigation & Common
@@ -371,7 +424,266 @@ const translations = {
     'title.rider_dashboard': 'Dashibodi ya Msafiri',
     'title.community_dashboard': 'Dashibodi ya Jamii',
     'title.chv_dashboard': 'Dashibodi ya CHV',
-    'title.health_worker_dashboard': 'Dashibodi ya Mfanyakazi wa Afya'
+    'title.health_worker_dashboard': 'Dashibodi ya Mfanyakazi wa Afya',
+    
+    // Analytics
+    'analytics.overview': 'Muhtasari wa Uchanganuzi',
+    'analytics.system_performance': 'Utendaji wa Mfumo',
+    'analytics.user_growth': 'Ukuaji wa Watumiaji',
+    'analytics.ride_metrics': 'Vipimo vya Safari',
+    'analytics.health_trends': 'Mwelekeo wa Afya',
+    
+    // Settings
+    'settings.profile': 'Mipangilio ya Wasifu',
+    'settings.notifications': 'Arifa',
+    'settings.security': 'Usalama',
+    'settings.backup': 'Hifadhi na Rejesha',
+    'settings.language': 'Lugha',
+    'settings.system': 'Mipangilio ya Mfumo',
+    
+    // Notifications
+    'notification.success': 'Mafanikio',
+    'notification.error': 'Hitilafu',
+    'notification.warning': 'Onyo',
+    'notification.info': 'Taarifa',
+    'notification.new_message': 'Ujumbe Mpya',
+    'notification.appointment_reminder': 'Ukumbusho wa Miadi',
+    'notification.ride_confirmed': 'Safari Imethibitishwa',
+    'notification.points_earned': 'Pointi Zimepatikana',
+    
+    // QR Code
+    'qr.title': 'QR Code Yako',
+    'qr.description': 'Onyesha hii katika vituo vya afya kwa utambulisho wa haraka',
+    'qr.download': 'Pakua QR Code',
+    'qr.share': 'Shiriki QR Code',
+    
+    // Language Selection
+    'language.select': 'Chagua Lugha',
+    'language.current': 'Lugha ya Sasa',
+    'language.change': 'Badilisha Lugha',
+    'language.auto_detect': 'Tambua Kiotomatiki',
+    
+    // Error Messages
+    'error.network': 'Hitilafu ya mtandao. Tafadhali angalia muunganisho wako.',
+    'error.invalid_input': 'Ingizo lisilo sahihi. Tafadhali angalia data yako.',
+    'error.permission_denied': 'Ruhusa imekataliwa. Tafadhali wasiliana na msimamizi.',
+    'error.not_found': 'Rasilimali haijapatikana.',
+    'error.server_error': 'Hitilafu ya seva. Tafadhali jaribu tena baadaye.',
+    
+    // Success Messages
+    'success.saved': 'Data imehifadhiwa kwa mafanikio.',
+    'success.updated': 'Taarifa imesasishwa kwa mafanikio.',
+    'success.deleted': 'Kipengee kimefutwa kwa mafanikio.',
+    'success.sent': 'Ujumbe umetumwa kwa mafanikio.',
+    'success.uploaded': 'Faili imepakiwa kwa mafanikio.'
+  },
+  // Add basic translations for other languages
+  rw: {
+    'nav.overview': 'Incamake',
+    'nav.households': 'Imiryango',
+    'nav.transport': 'Ubwikorezi',
+    'nav.alerts': 'Iburira',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Ibihembo',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ubuzima Hamwe',
+    'action.login': 'Injira',
+    'action.register': 'Iyandikishe',
+    'users.community': 'Umuryango',
+    'users.riders': 'Abatwara',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Abakozi bo Kubuzima',
+    'users.admins': 'Abayobozi',
+    'dashboard.community': 'Ikibaho cy\'Umuryango',
+    'dashboard.rider': 'Ikibaho cy\'Umutwara',
+    'dashboard.chv': 'Ikibaho cya CHV',
+    'dashboard.health_worker': 'Ikibaho cy\'Umukozi wo Kubuzima',
+    'dashboard.admin': 'Ikibaho cy\'Umuyobozi',
+    'welcome.choose_role': 'Hitamo Uruhare Rwawe'
+  },
+  ki: {
+    'nav.overview': 'Gĩthimi',
+    'nav.households': 'Nyũmba',
+    'nav.transport': 'Gũthiũra',
+    'nav.alerts': 'Mataaro',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Iheo',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ũgima Hamwe',
+    'action.login': 'Tonyia',
+    'action.register': 'Ĩyandĩkithia',
+    'users.community': 'Kĩrĩndĩ',
+    'users.riders': 'Athiũri',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Aruti Wĩra wa Ũgima',
+    'users.admins': 'Arangĩri',
+    'dashboard.community': 'Gĩthimi kĩa Kĩrĩndĩ',
+    'dashboard.rider': 'Gĩthimi kĩa Mũthiũri',
+    'dashboard.chv': 'Gĩthimi kĩa CHV',
+    'dashboard.health_worker': 'Gĩthimi kĩa Mũruti Wĩra wa Ũgima',
+    'dashboard.admin': 'Gĩthimi kĩa Mũrangĩri',
+    'welcome.choose_role': 'Thuura Wĩra Waku'
+  },
+  luy: {
+    'nav.overview': 'Khulola',
+    'nav.households': 'Amaka',
+    'nav.transport': 'Okhusafirisha',
+    'nav.alerts': 'Amalumuli',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Amaheo',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Obulamu Hamwe',
+    'action.login': 'Injila',
+    'action.register': 'Iyandikhe',
+    'users.community': 'Ekholo',
+    'users.riders': 'Abasafirisha',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Abakholi bo Bulamu',
+    'users.admins': 'Abalangishi',
+    'dashboard.community': 'Ekholo Khulola',
+    'dashboard.rider': 'Omusafirisha Khulola',
+    'dashboard.chv': 'CHV Khulola',
+    'dashboard.health_worker': 'Omukholi wo Bulamu Khulola',
+    'dashboard.admin': 'Omulangishi Khulola',
+    'welcome.choose_role': 'Chagula Omulimo Kwowo'
+  },
+  luo: {
+    'nav.overview': 'Ngʼeyo',
+    'nav.households': 'Udi',
+    'nav.transport': 'Wuoth',
+    'nav.alerts': 'Siem',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Mich',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ngima Kaachiel',
+    'action.login': 'Donj',
+    'action.register': 'Ndikri',
+    'users.community': 'Oganda',
+    'users.riders': 'Jowuoth',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Jotich Ngima',
+    'users.admins': 'Jotelo',
+    'dashboard.community': 'Oganda Ngʼeyo',
+    'dashboard.rider': 'Jawuoth Ngʼeyo',
+    'dashboard.chv': 'CHV Ngʼeyo',
+    'dashboard.health_worker': 'Jatich Ngima Ngʼeyo',
+    'dashboard.admin': 'Jatelo Ngʼeyo',
+    'welcome.choose_role': 'Yier Tich Mari'
+  },
+  kal: {
+    'nav.overview': 'Keny',
+    'nav.households': 'Koik',
+    'nav.transport': 'Kipsir',
+    'nav.alerts': 'Kimuktaindet',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Kimuktaindet',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Kipsigis Kamet',
+    'action.login': 'Kiring',
+    'action.register': 'Andik',
+    'users.community': 'Kokwet',
+    'users.riders': 'Chepsiriet',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Chepsoriet',
+    'users.admins': 'Kiruogindet',
+    'dashboard.community': 'Kokwet Keny',
+    'dashboard.rider': 'Chepsiriet Keny',
+    'dashboard.chv': 'CHV Keny',
+    'dashboard.health_worker': 'Chepsoriet Keny',
+    'dashboard.admin': 'Kiruogindet Keny',
+    'welcome.choose_role': 'Walak Boisiongung'
+  },
+  kam: {
+    'nav.overview': 'Kĩlonzo',
+    'nav.households': 'Mĩsyi',
+    'nav.transport': 'Kũthiũka',
+    'nav.alerts': 'Matũma',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Syindu',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ũtũũ Paũmwe',
+    'action.login': 'Tonyoka',
+    'action.register': 'Andĩka',
+    'users.community': 'Mbaĩ',
+    'users.riders': 'Athiũki',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Aĩthi ma Ũtũũ',
+    'users.admins': 'Aongoi',
+    'dashboard.community': 'Mbaĩ Kĩlonzo',
+    'dashboard.rider': 'Mũthiũki Kĩlonzo',
+    'dashboard.chv': 'CHV Kĩlonzo',
+    'dashboard.health_worker': 'Mũĩthi wa Ũtũũ Kĩlonzo',
+    'dashboard.admin': 'Mũongoi Kĩlonzo',
+    'welcome.choose_role': 'Sakua Wĩa Waku'
+  },
+  mer: {
+    'nav.overview': 'Kĩrore',
+    'nav.households': 'Nyũmba',
+    'nav.transport': 'Gũthiũra',
+    'nav.alerts': 'Mataaro',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Iheo',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ũgima Hamwe',
+    'action.login': 'Tonyia',
+    'action.register': 'Andĩka',
+    'users.community': 'Kĩrĩndĩ',
+    'users.riders': 'Athiũri',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Aruti Wĩra wa Ũgima',
+    'users.admins': 'Arangĩri',
+    'dashboard.community': 'Kĩrĩndĩ Kĩrore',
+    'dashboard.rider': 'Mũthiũri Kĩrore',
+    'dashboard.chv': 'CHV Kĩrore',
+    'dashboard.health_worker': 'Mũruti Wĩra wa Ũgima Kĩrore',
+    'dashboard.admin': 'Mũrangĩri Kĩrore',
+    'welcome.choose_role': 'Thuura Wĩra Waku'
+  },
+  mas: {
+    'nav.overview': 'Eidong',
+    'nav.households': 'Inkishon',
+    'nav.transport': 'Esidai',
+    'nav.alerts': 'Ilkiama',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Inkishon',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Ilkiama Nabo',
+    'action.login': 'Eidong',
+    'action.register': 'Aandik',
+    'users.community': 'Oloshon',
+    'users.riders': 'Ilosidai',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Ilkiama Aisiaayak',
+    'users.admins': 'Ilaritak',
+    'dashboard.community': 'Oloshon Eidong',
+    'dashboard.rider': 'Olosidai Eidong',
+    'dashboard.chv': 'CHV Eidong',
+    'dashboard.health_worker': 'Olkiama Aisiaayak Eidong',
+    'dashboard.admin': 'Olari Eidong',
+    'welcome.choose_role': 'Tagelua Esiai Lino'
+  },
+  som: {
+    'nav.overview': 'Dulmar',
+    'nav.households': 'Qoysaska',
+    'nav.transport': 'Gaadiidka',
+    'nav.alerts': 'Digniin',
+    'nav.bsense': 'B-Sense AI',
+    'nav.rewards': 'Abaalmarinta',
+    'welcome.title': 'ParaBoda',
+    'welcome.subtitle': 'Caafimaad Wada',
+    'action.login': 'Gal',
+    'action.register': 'Diiwaangeli',
+    'users.community': 'Bulshada',
+    'users.riders': 'Darawallada',
+    'users.chvs': 'CHVs',
+    'users.health_workers': 'Shaqaalaha Caafimaadka',
+    'users.admins': 'Maamulayaasha',
+    'dashboard.community': 'Bulshada Dulmar',
+    'dashboard.rider': 'Darawalka Dulmar',
+    'dashboard.chv': 'CHV Dulmar',
+    'dashboard.health_worker': 'Shaqaalaha Caafimaadka Dulmar',
+    'dashboard.admin': 'Maamulaha Dulmar',
+    'welcome.choose_role': 'Dooro Doorkaaga'
   }
 };
 
@@ -423,17 +735,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const target = targetLang || language;
     if (target === 'en') return text;
     
-    // Simple mock translation for common phrases
-    const mockTranslations: Record<string, string> = {
-      'Hello': 'Hujambo',
-      'Welcome': 'Karibu',
-      'Health': 'Afya',
-      'Transport': 'Usafiri',
-      'Emergency': 'Dharura',
-      'Community': 'Jamii'
-    };
-    
-    return mockTranslations[text] || text;
+    try {
+      return await translationService.translateText(text, target, 'en');
+    } catch (error) {
+      console.error('Translation error:', error);
+      return text;
+    }
   };
 
   return (

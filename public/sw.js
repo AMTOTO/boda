@@ -1,23 +1,26 @@
 // Service Worker for ParaBoda Health Ecosystem
 const CACHE_NAME = 'paraboda-cache-v1';
 const OFFLINE_URL = '/offline.html';
+const OFFLINE_IMG = '/offline-image.jpg';
 
-// Assets to cache immediately on install
-const PRECACHE_ASSETS = [
+const urlsToCache = [
   '/',
   '/index.html',
-  '/offline.html',
   '/manifest.json',
-  '/Rider mother and child.jpg'
+  OFFLINE_URL,
+  OFFLINE_IMG,
+  '/Rider mother and child.jpg',
+  '/src/index.css',
+  '/src/main.tsx'
 ];
 
-// Install event - precache critical assets
+// Install event - cache essential files
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(PRECACHE_ASSETS);
+        return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
   );
@@ -25,12 +28,12 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -39,38 +42,53 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, falling back to cache, then offline page
+// Fetch event - serve from cache or network
 self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // For HTML pages - network first, then cache, then offline page
-  if (event.request.headers.get('accept')?.includes('text/html')) {
+  // Handle API requests differently - network first, then fallback
+  if (event.request.url.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
-          // Cache the latest version
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
-        })
         .catch(() => {
-          // Try to get from cache
           return caches.match(event.request)
             .then((cachedResponse) => {
               if (cachedResponse) {
                 return cachedResponse;
               }
-              // If not in cache, return offline page
+              // If it's an API request and we can't get from network or cache,
+              // return a JSON error response
+              return new Response(
+                JSON.stringify({ 
+                  error: 'Network error', 
+                  message: 'You are currently offline' 
+                }),
+                { 
+                  status: 503,
+                  headers: { 'Content-Type': 'application/json' }
+                }
+              );
+            });
+        })
+    );
+    return;
+  }
+
+  // For page navigations - try network first, fall back to cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(event.request)
+            .then((cachedResponse) => {
+              // If we have a cached version, return it
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Otherwise return the offline page
               return caches.match(OFFLINE_URL);
             });
         })
@@ -78,25 +96,42 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For other assets - stale-while-revalidate
+  // For images - try cache first, fall back to network, then offline image
+  if (event.request.destination === 'image') {
+    event.respondWith(
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          return cachedResponse || fetch(event.request)
+            .then((networkResponse) => {
+              // Cache the fetched response
+              return caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+              });
+            })
+            .catch(() => {
+              // If both cache and network fail, return offline image
+              return caches.match(OFFLINE_IMG);
+            });
+        })
+    );
+    return;
+  }
+
+  // For other assets - stale-while-revalidate strategy
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Use cached version if available
+        // Return cached response immediately
         const fetchPromise = fetch(event.request)
           .then((networkResponse) => {
-            // Update cache with fresh version
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse.clone());
-            });
+            // Update the cache with the new response
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, networkResponse.clone());
+              });
             return networkResponse;
-          })
-          .catch((error) => {
-            console.log('Fetch failed:', error);
-            // Return cached version or offline fallback
-            return cachedResponse || caches.match(OFFLINE_URL);
           });
-        
         return cachedResponse || fetchPromise;
       })
   );
@@ -104,8 +139,8 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync for offline form submissions
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'paraboda-sync') {
-    event.waitUntil(syncData());
+  if (event.tag === 'sync-forms') {
+    event.waitUntil(syncForms());
   }
 });
 
@@ -134,7 +169,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.matchAll({type: 'window'})
       .then((clientList) => {
-        // If a window is already open, focus it
+        // If a window client is already open, focus it
         for (const client of clientList) {
           if (client.url === event.notification.data.url && 'focus' in client) {
             return client.focus();
@@ -148,54 +183,44 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Helper function to sync data when back online
-async function syncData() {
+// Helper function to sync forms
+async function syncForms() {
   try {
-    // Get all pending requests from IndexedDB
-    const db = await openDB();
-    const pendingRequests = await db.getAll('pending-requests');
+    // Get all stored form submissions
+    const formData = await getStoredFormData();
     
-    // Process each request
-    const promises = pendingRequests.map(async (request) => {
+    // Send each form submission
+    const promises = formData.map(async (data) => {
       try {
-        // Attempt to send the request
-        const response = await fetch(request.url, {
-          method: request.method,
-          headers: request.headers,
-          body: request.body
+        const response = await fetch(data.url, {
+          method: data.method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data.body)
         });
         
         if (response.ok) {
-          // If successful, remove from pending
-          await db.delete('pending-requests', request.id);
+          // If successful, remove from storage
+          await removeStoredFormData(data.id);
         }
-        
-        return response;
       } catch (error) {
-        console.error('Sync failed for request:', request, error);
-        return null;
+        console.error('Sync failed for form:', data.id, error);
       }
     });
     
-    return Promise.all(promises);
+    await Promise.all(promises);
   } catch (error) {
-    console.error('Error during sync:', error);
+    console.error('Form sync error:', error);
   }
 }
 
-// Simple IndexedDB wrapper for offline storage
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('paraboda-offline', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('pending-requests')) {
-        db.createObjectStore('pending-requests', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-  });
+// Mock functions for form data storage
+// In a real app, you would use IndexedDB
+async function getStoredFormData() {
+  return [];
+}
+
+async function removeStoredFormData(id) {
+  // Implementation would use IndexedDB
 }
