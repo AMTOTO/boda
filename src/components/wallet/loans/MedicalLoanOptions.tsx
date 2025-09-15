@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { Modal } from '../../common/Modal';
 import { 
   Heart, 
   Stethoscope, 
@@ -29,7 +30,7 @@ interface LoanOption {
 interface MedicalLoanOptionsProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoanSelect: (loanOption: LoanOption) => void;
+  onLoanSelect: (loanType: string) => void;
 }
 
 export const MedicalLoanOptions: React.FC<MedicalLoanOptionsProps> = ({ 
@@ -120,82 +121,76 @@ export const MedicalLoanOptions: React.FC<MedicalLoanOptionsProps> = ({
     }
   ];
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-      >
-        <div className="p-6">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {language === 'sw' ? 'Chagua Aina ya Mkopo' : 'Choose Loan Type'}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              {language === 'sw' 
-                ? 'Chagua aina ya mkopo unaouhitaji kwa huduma za afya'
-                : 'Select the type of loan you need for health services'
-              }
-            </p>
-          </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={language === 'sw' ? '💳 Chagua Aina ya Mkopo' : '💳 Choose Loan Type'}
+      size="xl"
+    >
+      <div className="space-y-6">
+        <div className="text-center">
+          <p className="text-gray-600">
+            {language === 'sw' 
+              ? 'Chagua aina ya mkopo unaouhitaji kwa huduma za afya'
+              : 'Select the type of loan you need for health services'
+            }
+          </p>
+        </div>
 
-          <div className="grid gap-4">
-            {loanOptions.map((option, index) => (
-              <motion.button
-                key={option.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                onClick={() => onLoanSelect(option)}
-                className={`w-full p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-95 text-left ${option.bgColor}`}
-                aria-label={`${language === 'sw' ? option.nameSwahili : option.name} loan option`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start space-x-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${option.bgColor.replace('50', '100')}`}>
-                      <option.icon className={`w-6 h-6 ${option.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                        {language === 'sw' ? option.nameSwahili : option.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        {language === 'sw' ? option.descriptionSwahili : option.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs">
-                        <div className="flex items-center space-x-1">
-                          <DollarSign className="w-3 h-3 text-gray-500" />
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {language === 'sw' ? 'Juu ya' : 'Up to'} KSh {option.maxAmount.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="text-gray-500">
-                          {option.interestRate}% {language === 'sw' ? 'riba' : 'interest'}
-                        </div>
+        <div className="grid gap-4">
+          {loanOptions.map((option, index) => (
+            <motion.button
+              key={option.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => onLoanSelect(option.id)}
+              className={`w-full p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-95 text-left ${option.bgColor}`}
+              aria-label={`${language === 'sw' ? option.nameSwahili : option.name} loan option`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-start space-x-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${option.bgColor.replace('50', '100')}`}>
+                    <option.icon className={`w-6 h-6 ${option.color}`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {language === 'sw' ? option.nameSwahili : option.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {language === 'sw' ? option.descriptionSwahili : option.description}
+                    </p>
+                    <div className="flex items-center space-x-4 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <DollarSign className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-700">
+                          {language === 'sw' ? 'Juu ya' : 'Up to'} KSh {option.maxAmount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="text-gray-500">
+                        {option.interestRate}% {language === 'sw' ? 'riba' : 'interest'}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-gray-400" />
                 </div>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="flex justify-center pt-6">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              {language === 'sw' ? 'Ghairi' : 'Cancel'}
-            </button>
-          </div>
+                <ChevronRight className="w-6 h-6 text-gray-400" />
+              </div>
+            </motion.button>
+          ))}
         </div>
-      </motion.div>
-    </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <h4 className="font-semibold text-blue-900 mb-2">
+            {language === 'sw' ? 'Muhimu' : 'Important'}
+          </h4>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• {language === 'sw' ? 'Kiwango cha juu cha mikopo ni KSh 10,000' : 'Maximum loan amount is KSh 10,000'}</li>
+            <li>• {language === 'sw' ? 'Riba inahesabiwa kwa mwaka' : 'Interest rates are calculated annually'}</li>
+            <li>• {language === 'sw' ? 'Malipo yanaweza kufanywa kwa miezi 1-12' : 'Repayment can be made over 1-12 months'}</li>
+          </ul>
+        </div>
+      </div>
+    </Modal>
   );
 };

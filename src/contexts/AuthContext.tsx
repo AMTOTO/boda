@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type UserRole = 'community' | 'rider' | 'chv' | 'health_worker' | 'admin';
 
-export interface User {
+interface User {
   id: string;
   name: string;
   email?: string;
@@ -20,6 +20,12 @@ interface RegistrationData {
   name: string;
   role: UserRole;
   location: string;
+  dateOfBirth?: string;
+  country?: string;
+  county?: string;
+  subCounty?: string;
+  village?: string;
+  gpsLocation?: {lat: number, lng: number};
   email?: string;
   password?: string;
   phone?: string;

@@ -260,7 +260,7 @@ export const AuthPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Quick Login - Role Selection */}
+        {/* QR Login Method */}
         {loginMethod === 'quick' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -269,31 +269,21 @@ export const AuthPage: React.FC = () => {
           >
             <div className="text-center mb-6">
               <h3 className="text-3xl font-black text-gray-900 mb-2">
-                {language === 'sw' ? '⚡ Kuingia kwa Haraka' : '⚡ Quick Login'}
+                {language === 'sw' ? '📱 Kuingia kwa QR Code' : '📱 QR Code Login'}
               </h3>
               <p className="text-gray-600 font-bold text-lg">
-                {language === 'sw' ? 'Bofya jukumu lako kuingia moja kwa moja' : 'Click your role to login instantly'}
+                {language === 'sw' ? 'Skani QR code yako kuingia moja kwa moja' : 'Scan your QR code to login instantly'}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-              {roles.map((role) => (
-                <motion.button
-                  key={role.id}
-                  onClick={() => handleQuickLogin(role.id)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`p-6 rounded-3xl border-4 transition-all text-center shadow-2xl bg-white hover:shadow-3xl transform hover:-translate-y-2`}
-                >
-                  <div className="text-6xl mb-4">{role.emoji}</div>
-                  <role.icon className={`w-8 h-8 mb-4 mx-auto text-${role.color}-600`} />
-                  <h3 className="font-black text-gray-900 text-xl mb-2">{role.name}</h3>
-                  <p className="text-gray-600 text-sm font-bold">{role.description}</p>
-                  <div className="mt-4 bg-gradient-to-r from-emerald-500 to-blue-500 text-white py-2 rounded-xl font-black">
-                    {language === 'sw' ? 'INGIA' : 'ENTER'}
-                  </div>
-                </motion.button>
-              ))}
+            <div className="flex justify-center">
+              <button
+                onClick={() => setLoginMethod('qr')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-6 px-12 rounded-3xl hover:from-blue-700 hover:to-purple-700 transition-all font-black text-xl shadow-2xl flex items-center space-x-4 transform hover:scale-105"
+              >
+                <QrCode className="w-8 h-8" />
+                <span>{language === 'sw' ? 'SKANI QR CODE' : 'SCAN QR CODE'}</span>
+              </button>
             </div>
           </motion.div>
         )}

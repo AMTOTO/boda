@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Modal } from './Modal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,19 +18,22 @@ import {
   AlertTriangle,
   CheckCircle,
   Star,
-  Zap
+  Zap,
+  Loader
 } from 'lucide-react';
 
 interface ServiceRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRequest: (service: any) => void;
+  serviceType?: string;
 }
 
 export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({ 
   isOpen, 
   onClose, 
-  onRequest 
+  onRequest,
+  serviceType = ''
 }) => {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -46,6 +49,17 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [distanceInKm, setDistanceInKm] = useState<number>(1);
+
+  // Cost calculation with new pricing tiers
+  const calculateTotalCost = () => {
+    const distance = Math.max(1, distanceInKm || 1);
+    if (distance <= 3) return 50;
+    if (distance <= 5) return 100;
+    return 100 + ((distance - 5) * 40); // 100 for first 5km + 40 per additional km
+  };
+  const totalCost = calculateTotalCost();
 
   const services = [
     {
@@ -55,7 +69,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       color: 'red',
       emoji: '🚨',
       description: language === 'sw' ? 'Usafiri wa haraka kwa hali za dharura' : 'Urgent transport for emergencies',
-      estimatedCost: 1000,
+      estimatedCost: totalCost,
       estimatedTime: '5-10 min'
     },
     {
@@ -65,7 +79,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       color: 'pink',
       emoji: '🤱',
       description: language === 'sw' ? 'Usafiri kwa ziara za ANC' : 'Transport for ANC visits',
-      estimatedCost: 400,
+      estimatedCost: totalCost,
       estimatedTime: '15-30 min'
     },
     {
@@ -75,7 +89,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       color: 'blue',
       emoji: '💉',
       description: language === 'sw' ? 'Usafiri kwa chanjo za watoto' : 'Transport for child vaccinations',
-      estimatedCost: 300,
+      estimatedCost: totalCost,
       estimatedTime: '15-30 min'
     },
     {
@@ -85,7 +99,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       color: 'green',
       emoji: '🩺',
       description: language === 'sw' ? 'Usafiri kwa uchunguzi wa kawaida' : 'Transport for routine checkups',
-      estimatedCost: 350,
+      estimatedCost: totalCost,
       estimatedTime: '20-40 min'
     },
     {
@@ -131,8 +145,44 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
     }
   ];
 
-  const handleSubmit = async () => {
+  // Get current location
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setCurrentLocation(coords);
+          setPickupLocation(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
+
+  // Auto-populate user details on mount
+  useEffect(() => {
+    if (user) {
+      setPatientName(user.name);
+      setPickupLocation(user.location || '');
+      if (navigator.geolocation) {
+        getCurrentLocation();
+      }
+    }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!selectedService || !patientName) return;
+    
+    // Validate distance for transport services
+    if (selectedService.includes('transport') && (!distanceInKm || distanceInKm < 1)) {
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -154,7 +204,8 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       additionalNotes,
       estimatedCost: service?.estimatedCost,
       requestedBy: user?.name,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      gpsLocation: currentLocation
     };
     
     onRequest(requestData);
@@ -182,6 +233,14 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   };
 
   const selectedServiceData = services.find(s => s.id === selectedService);
+
+  // Auto-select emergency service if serviceType is emergency
+  useEffect(() => {
+    if (serviceType === 'emergency' && !selectedService) {
+      setSelectedService('emergency_transport');
+      setUrgency('high');
+    }
+  }, [serviceType, selectedService]);
 
   return (
     <Modal
@@ -337,36 +396,94 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
             {/* Location Information */}
             {(selectedService.includes('transport') || selectedService === 'home_visit') && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Mahali pa Kuchukua' : 'Pickup Location'}
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={pickupLocation}
-                      onChange={(e) => setPickupLocation(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder={language === 'sw' ? 'Mahali pa kuchukua' : 'Pickup location'}
-                    />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'sw' ? 'Mahali pa Kuchukua' : 'Pickup Location'}
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={pickupLocation}
+                        onChange={(e) => setPickupLocation(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder={language === 'sw' ? 'Mahali pa kuchukua' : 'Pickup location'}
+                      />
+                      <button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700"
+                        title={language === 'sw' ? 'Tumia Mahali Pako' : 'Use Your Location'}
+                      >
+                        <MapPin className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'sw' ? 'Marudio' : 'Destination'}
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder={language === 'sw' ? 'Kituo cha afya' : 'Health center'}
+                      />
+                    </div>
                   </div>
                 </div>
 
+                {/* Distance Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Marudio' : 'Destination'}
+                    {language === 'sw' ? 'Umbali (km)' : 'Distance (km)'}
+                    <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder={language === 'sw' ? 'Kituo cha afya' : 'Health center'}
-                    />
+                  <input
+                    type="number"
+                    value={distanceInKm || ''}
+                    onChange={(e) => setDistanceInKm(parseFloat(e.target.value) || 1)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder={language === 'sw' ? 'Ingiza umbali kwa kilomita' : 'Enter distance in kilometers'}
+                    min="1"
+                    step="0.1"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    {language === 'sw' ? 'Kiwango cha chini: 1 km' : 'Minimum: 1 km'}
+                  </p>
+                </div>
+
+                {/* Cost Display */}
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  <h5 className="font-semibold text-blue-900 mb-2">
+                    {language === 'sw' ? 'Gharama ya Kadirio' : 'Estimated Cost'}
+                  </h5>
+                  <div className="text-sm text-blue-800">
+                    <div className="flex justify-between items-center mb-1">
+                      <span>{language === 'sw' ? 'Umbali:' : 'Distance:'}</span>
+                      <span className="font-medium">{distanceInKm || 1} km</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span>{language === 'sw' ? 'Viwango vya bei:' : 'Pricing tiers:'}</span>
+                      <span className="font-medium text-xs">
+                        {distanceInKm <= 3 ? 'KSh 50 (0-3km)' :
+                         distanceInKm <= 5 ? 'KSh 100 (3-5km)' :
+                         `KSh 100 + ${((distanceInKm - 5) * 40).toFixed(0)} (>5km)`}
+                      </span>
+                    </div>
+                    <div className="border-t border-blue-300 pt-2 mt-2">
+                      <div className="flex justify-between items-center font-bold text-lg">
+                        <span>{language === 'sw' ? 'Jumla:' : 'Total:'}</span>
+                        <span className="text-blue-600">KSh {totalCost}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -448,12 +565,12 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !selectedService || !patientName}
+            disabled={isSubmitting || !selectedService || !patientName || (selectedService.includes('transport') && (!distanceInKm || distanceInKm < 1))}
             className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <Loader className="w-5 h-5 animate-spin" />
                 <span>{language === 'sw' ? 'Inawasilisha...' : 'Submitting...'}</span>
               </>
             ) : (

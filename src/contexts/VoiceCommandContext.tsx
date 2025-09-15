@@ -6,6 +6,7 @@ interface VoiceCommandContextType {
   startListening: () => void;
   stopListening: () => void;
   isSupported: boolean;
+  speakText: (text: string) => void;
 }
 
 const VoiceCommandContext = createContext<VoiceCommandContextType | undefined>(undefined);
@@ -40,6 +41,9 @@ export const VoiceCommandProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const result = event.results[0][0].transcript;
           setTranscript(result);
           setIsListening(false);
+          
+          // Process voice commands
+          processVoiceCommand(result);
         };
         
         recognitionInstance.onerror = (event: any) => {
@@ -56,6 +60,29 @@ export const VoiceCommandProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
+  const processVoiceCommand = (command: string) => {
+    const lowerCommand = command.toLowerCase();
+    
+    // Navigation commands
+    if (lowerCommand.includes('go to home') || lowerCommand.includes('nyumbani')) {
+      window.location.href = '/';
+    } else if (lowerCommand.includes('go to health') || lowerCommand.includes('afya')) {
+      window.location.href = '/community/health';
+    } else if (lowerCommand.includes('go to transport') || lowerCommand.includes('usafiri')) {
+      window.location.href = '/community/transport';
+    } else if (lowerCommand.includes('go to rewards') || lowerCommand.includes('zawadi')) {
+      window.location.href = '/community/rewards';
+    } else if (lowerCommand.includes('emergency') || lowerCommand.includes('dharura')) {
+      // Trigger emergency action
+      const emergencyButton = document.querySelector('[data-emergency-button]');
+      if (emergencyButton) {
+        (emergencyButton as HTMLElement).click();
+      }
+    }
+    
+    // Add more command processing as needed
+  };
+
   const startListening = () => {
     if (!isSupported || !recognition) {
       // Fallback for demo
@@ -63,6 +90,7 @@ export const VoiceCommandProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setTimeout(() => {
         setTranscript('Nataka transport ya emergency');
         setIsListening(false);
+        processVoiceCommand('Nataka transport ya emergency');
       }, 2000);
       return;
     }
@@ -77,6 +105,7 @@ export const VoiceCommandProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setTimeout(() => {
         setTranscript('Nataka transport ya emergency');
         setIsListening(false);
+        processVoiceCommand('Nataka transport ya emergency');
       }, 2000);
     }
   };
@@ -92,13 +121,34 @@ export const VoiceCommandProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setIsListening(false);
   };
 
+  // Text-to-speech function
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Try to find a voice that matches the user's language
+      const userLanguage = navigator.language.split('-')[0]; // e.g., 'en' from 'en-US'
+      const voice = voices.find(v => v.lang.startsWith(userLanguage)) || voices[0];
+      
+      if (voice) {
+        utterance.voice = voice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
     <VoiceCommandContext.Provider value={{
       isListening,
       transcript,
       startListening,
       stopListening,
-      isSupported
+      isSupported,
+      speakText
     }}>
       {children}
     </VoiceCommandContext.Provider>

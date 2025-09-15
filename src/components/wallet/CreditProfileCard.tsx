@@ -362,7 +362,10 @@ export const CreditProfileCard: React.FC<Partial<CreditProfileCardProps>> = ({
           <button 
             onClick={() => {
               console.log('Loan History clicked');
-              // Add functionality to show loan history modal or navigate
+              if (typeof window !== 'undefined') {
+                const event = new CustomEvent('loanHistoryRequested');
+                window.dispatchEvent(event);
+              }
             }}
             className="min-h-[48px] bg-gradient-to-r from-wallet-primary-500 to-wallet-primary-600 text-white py-2 px-4 rounded-xl hover:from-wallet-primary-600 hover:to-wallet-primary-700 transition-all font-semibold shadow-wallet active:scale-95"
           >
@@ -371,7 +374,7 @@ export const CreditProfileCard: React.FC<Partial<CreditProfileCardProps>> = ({
           <button 
             onClick={() => {
               console.log('Credit Report clicked');
-              // Add functionality to show credit report modal or navigate
+              onViewCreditReport();
             }}
             className="min-h-[48px] bg-gradient-to-r from-wallet-accent-500 to-wallet-accent-600 text-white py-2 px-4 rounded-xl hover:from-wallet-accent-600 hover:to-wallet-accent-700 transition-all font-semibold shadow-wallet active:scale-95"
           >
@@ -380,7 +383,10 @@ export const CreditProfileCard: React.FC<Partial<CreditProfileCardProps>> = ({
           <button 
             onClick={() => {
               console.log('Add Savings clicked from Credit Profile');
-              // Add functionality to show add savings modal
+              if (typeof window !== 'undefined') {
+                const event = new CustomEvent('addSavingsRequested');
+                window.dispatchEvent(event);
+              }
             }}
             className="min-h-[48px] bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all font-semibold shadow-wallet active:scale-95"
           >

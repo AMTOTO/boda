@@ -32,3 +32,25 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+// Set theme based on user preference
+const setInitialTheme = () => {
+  // Check for saved theme preference
+  const savedTheme = localStorage.getItem('paraboda_theme');
+  
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+  } else {
+    // If no saved preference, use system preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+};
+
+// Set initial theme
+setInitialTheme();

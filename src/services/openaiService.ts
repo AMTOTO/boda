@@ -16,36 +16,20 @@ export interface BSenseAnalysis {
 }
 
 class OpenAIService {
-  private apiKey: string;
-  private baseURL = 'https://api.openai.com/v1';
-
-  constructor() {
-    // Use a default API key that works for demo purposes
-    this.apiKey = 'sk-demo-key-for-paraboda-health-system';
-  }
-
-  private isValidApiKey(): boolean {
-    // For demo purposes, we'll always return false to use mock responses
-    return false;
-  }
-
   async analyzeHealthSymptoms(symptoms: string, patientInfo?: any): Promise<BSenseAnalysis> {
-    // Always use mock responses for demo
+    // Use mock analysis since we removed external API dependencies
     return this.getMockAnalysis(symptoms);
   }
 
   async generateHealthEducation(topic: string, language: string = 'en'): Promise<string> {
-    // Always use mock responses for demo
     return this.getMockEducation(topic, language);
   }
 
   async debunkMyth(myth: string, language: string = 'en'): Promise<string> {
-    // Always use mock responses for demo
     return this.getMockMythDebunk(myth, language);
   }
 
   async chatWithAI(message: string, language: string = 'en', context: string = ''): Promise<string> {
-    // Always use mock responses for demo
     return this.getMockChatResponse(message, language);
   }
 
@@ -280,42 +264,6 @@ class OpenAIService {
     return language === 'sw'
       ? "Asante kwa swali lako. Ninaweza kukusaidia na maswali kuhusu afya, usafiri wa afya, na huduma za jamii. Tafadhali uliza swali lolote kuhusu afya yako au huduma zetu."
       : "Thank you for your question. I can help with questions about health, health transport, and community services. Please feel free to ask any question about your health or our services.";
-  }
-
-  private parseTextResponse(content: string): BSenseAnalysis {
-    // Simple text parsing fallback
-    const hasHighRiskWords = /critical|emergency|urgent|severe|immediately|hospital|emergency room/i.test(content);
-    const hasMediumRiskWords = /moderate|concerning|monitor|clinic|follow up|within 24 hours/i.test(content);
-    
-    // Extract recommendations
-    const recommendationLines = content.split('\n').filter(line => 
-      /recommend|should|advised|important|consider|try|take|drink|rest|avoid/i.test(line)
-    );
-    
-    // Extract possible conditions
-    const conditionLines = content.split('\n').filter(line => 
-      /condition|disease|infection|cause|symptom of|indicate|suggest|point to/i.test(line)
-    );
-    
-    // Extract next steps
-    const stepLines = content.split('\n').filter(line => 
-      /visit|seek|consult|go to|call|contact|follow up|next|step/i.test(line)
-    );
-    
-    return {
-      healthRisk: hasHighRiskWords ? 'high' : hasMediumRiskWords ? 'medium' : 'low',
-      recommendations: recommendationLines.length > 0 
-        ? recommendationLines.map(line => line.trim()) 
-        : ['Rest and stay hydrated', 'Monitor your symptoms', 'Take paracetamol if needed for pain or fever'],
-      urgency: hasHighRiskWords ? 8 : hasMediumRiskWords ? 5 : 2,
-      symptoms: [],
-      possibleConditions: conditionLines.length > 0
-        ? conditionLines.map(line => line.trim())
-        : ['Common viral infection', 'Minor ailment'],
-      nextSteps: stepLines.length > 0
-        ? stepLines.map(line => line.trim())
-        : ['Consult healthcare provider if symptoms worsen', 'Monitor symptoms']
-    };
   }
 }
 

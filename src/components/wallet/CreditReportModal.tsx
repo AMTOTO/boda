@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Modal } from '../common/Modal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { useData } from '../../contexts/DataContext';
 import { 
   FileText, 
   TrendingUp, 
@@ -19,7 +20,8 @@ import {
   Activity,
   BarChart3,
   History,
-  Loader
+  Loader,
+  X
 } from 'lucide-react';
 
 interface CreditReportModalProps {
@@ -60,6 +62,7 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
 }) => {
   const { language } = useLanguage();
   const { formatAmount } = useCurrency();
+  const { addNotification } = useData();
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -148,6 +151,12 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
     a.click();
     window.URL.revokeObjectURL(url);
 
+    addNotification({
+      title: language === 'sw' ? 'Ripoti Imepakuliwa' : 'Report Downloaded',
+      message: language === 'sw' ? 'Ripoti ya mkopo imepakuliwa' : 'Credit report has been downloaded',
+      type: 'success',
+      read: false
+    });
     setIsLoading(false);
   };
 
@@ -400,7 +409,12 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
               <div className="flex space-x-3 mt-4">
                 <button
                   onClick={() => {
-                    console.log('Make payment for loan:', loan.id);
+                    addNotification({
+                      title: language === 'sw' ? 'Malipo Yameanza' : 'Payment Initiated',
+                      message: language === 'sw' ? 'Mchakato wa malipo umeanza' : 'Payment process started',
+                      type: 'info',
+                      read: false
+                    });
                     onClose();
                   }}
                   className="min-h-[48px] flex-1 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-semibold"
@@ -409,7 +423,12 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
                 </button>
                 <button
                   onClick={() => {
-                    console.log('View details for loan:', loan.id);
+                    addNotification({
+                      title: language === 'sw' ? 'Maelezo ya Mkopo' : 'Loan Details',
+                      message: language === 'sw' ? 'Maelezo kamili ya mkopo yameonyeshwa' : 'Full loan details displayed',
+                      type: 'info',
+                      read: false
+                    });
                   }}
                   className="min-h-[48px] px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all"
                 >
@@ -498,7 +517,7 @@ export const CreditReportModal: React.FC<CreditReportModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={language === 'sw' ? 'Ripoti ya Mkopo' : 'Credit Report'}
+      title={language === 'sw' ? '📊 Ripoti ya Mkopo' : '📊 Credit Report'}
       size="xl"
     >
       <div className="space-y-6">

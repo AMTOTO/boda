@@ -109,7 +109,9 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     canvas.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-        onCapture(imageData, file);
+        if (onCapture) {
+          onCapture(imageData, file);
+        }
       }
     }, 'image/jpeg', 0.8);
   };

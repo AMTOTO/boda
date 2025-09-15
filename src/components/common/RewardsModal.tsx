@@ -16,8 +16,10 @@ import {
   Smartphone,
   Stethoscope,
   Droplets,
-  Shield
+  Shield,
+  DollarSign
 } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface RewardsModalProps {
   isOpen: boolean;
@@ -46,8 +48,11 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
   userPoints, 
   onRedeem 
 }) => {
+  const { language } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [language] = useState<'en' | 'sw'>('en'); // This would come from language context
+  const [showDonationForm, setShowDonationForm] = useState(false);
+  const [donationAmount, setDonationAmount] = useState<number>(0);
+  const [donationPurpose, setDonationPurpose] = useState<string>('');
 
   const rewardItems: RewardItem[] = [
     // Menstrual Hygiene Products
@@ -226,11 +231,34 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
     }
   };
 
+  const handleDonate = () => {
+    if (donationAmount <= 0 || donationAmount > userPoints) return;
+    
+    // Mock donation functionality
+    onRedeem({
+      id: `donation_${Date.now()}`,
+      name: `Donation: ${donationPurpose || 'General Fund'}`,
+      nameSwahili: `Mchango: ${donationPurpose || 'Fedha za Jumla'}`,
+      points: donationAmount,
+      category: 'health',
+      icon: Heart,
+      emoji: '❤️',
+      description: `Donation to ${donationPurpose || 'community fund'}`,
+      descriptionSwahili: `Mchango kwa ${donationPurpose || 'fedha za jamii'}`,
+      available: true,
+      stock: 999
+    });
+    
+    setShowDonationForm(false);
+    setDonationAmount(0);
+    setDonationPurpose('');
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={language === 'sw' ? 'Duka la Zawadi' : 'Rewards Store'}
+      title={language === 'sw' ? 'Duka la Pointi' : 'Royalty Points Store'}
       size="xl"
     >
       <div className="space-y-6">
@@ -242,9 +270,90 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({
             <Star className="w-8 h-8" />
           </div>
           <p className="text-lg font-bold">
-            {language === 'sw' ? 'Pointi Zako za Zawadi' : 'Your Reward Points'}
+            {language === 'sw' ? 'Pointi Zako za Ufalme' : 'Your Royalty Points'}
           </p>
         </div>
+
+        {/* Donation Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowDonationForm(!showDonationForm)}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-bold"
+          >
+            <Heart className="w-5 h-5" />
+            <span>{language === 'sw' ? 'Changia Pointi' : 'Donate Points'}</span>
+          </button>
+        </div>
+
+        {/* Donation Form */}
+        {showDonationForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-purple-50 p-4 rounded-xl border border-purple-200"
+          >
+            <h3 className="font-bold text-purple-900 mb-3">
+              {language === 'sw' ? 'Changia Pointi Zako' : 'Donate Your Points'}
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'sw' ? 'Kiasi cha Pointi' : 'Points Amount'}
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="number"
+                    value={donationAmount || ''}
+                    onChange={(e) => setDonationAmount(parseInt(e.target.value) || 0)}
+                    className="w-full pl-10 pr-4 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder={language === 'sw' ? 'Ingiza kiasi' : 'Enter amount'}
+                    min="1"
+                    max={userPoints}
+                  />
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs text-gray-500">{language === 'sw' ? 'Kiwango cha Chini: 10' : 'Min: 10'}</span>
+                  <span className="text-xs text-gray-500">{language === 'sw' ? 'Kiwango cha Juu:' : 'Max:'} {userPoints}</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'sw' ? 'Madhumuni ya Mchango' : 'Donation Purpose'}
+                </label>
+                <select
+                  value={donationPurpose}
+                  onChange={(e) => setDonationPurpose(e.target.value)}
+                  className="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">{language === 'sw' ? 'Chagua madhumuni' : 'Select purpose'}</option>
+                  <option value="emergency_transport">{language === 'sw' ? 'Usafiri wa Dharura' : 'Emergency Transport'}</option>
+                  <option value="maternal_health">{language === 'sw' ? 'Afya ya Mama' : 'Maternal Health'}</option>
+                  <option value="child_nutrition">{language === 'sw' ? 'Lishe ya Watoto' : 'Child Nutrition'}</option>
+                  <option value="community_fund">{language === 'sw' ? 'Fedha za Jamii' : 'Community Fund'}</option>
+                </select>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDonationForm(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {language === 'sw' ? 'Ghairi' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleDonate}
+                  disabled={donationAmount <= 0 || donationAmount > userPoints}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                >
+                  {language === 'sw' ? 'Changia Sasa' : 'Donate Now'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2">

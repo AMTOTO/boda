@@ -1,101 +1,74 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import QRCode from 'react-qr-code';
-import { Download, Share2 } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 
 interface QRCodeDisplayProps {
-  value: string;
-  title: string;
+  isOpen: boolean;
+  onClose: () => void;
+  qrCodeUrl: string;
+  title?: string;
   description?: string;
-  size?: number;
 }
 
 export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
-  value,
-  title,
-  description,
-  size = 200
+  isOpen,
+  onClose,
+  qrCodeUrl,
+  title = "QR Code",
+  description = "Scan this QR code with your mobile device"
 }) => {
-  const downloadQR = () => {
-    const svg = document.getElementById('qr-code');
-    if (svg) {
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-        
-        const pngFile = canvas.toDataURL('image/png');
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `paraboda-qr-${Date.now()}.png`;
-        downloadLink.href = pngFile;
-        downloadLink.click();
-      };
-      
-      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-    }
-  };
+  if (!isOpen) return null;
 
-  const shareQR = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: title,
-          text: description || 'ParaBoda QR Code',
-          url: window.location.href
-        });
-      } catch (err) {
-        console.log('Error sharing:', err);
-      }
-    }
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = qrCodeUrl;
+    link.download = 'qr-code.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-100"
-    >
-      <div className="text-center">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        {description && (
-          <p className="text-sm text-gray-600 mb-4">{description}</p>
-        )}
-        
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 inline-block mb-4">
-          <QRCode
-            id="qr-code"
-            value={value}
-            size={Math.min(size, window.innerWidth - 120)}
-            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-            viewBox={`0 0 256 256`}
-          />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
         
-        <div className="flex flex-col sm:flex-row justify-center gap-3">
-          <button
-            onClick={downloadQR}
-            className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download</span>
-          </button>
+        <div className="text-center">
+          <div className="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4 inline-block">
+            <img
+              src={qrCodeUrl}
+              alt="QR Code"
+              className="w-48 h-48 mx-auto"
+            />
+          </div>
           
-          {navigator.share && (
+          <p className="text-gray-600 mb-4">{description}</p>
+          
+          <div className="flex gap-3 justify-center">
             <button
-              onClick={shareQR}
-              className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors active:scale-95"
+              onClick={handleDownload}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <Share2 className="w-4 h-4" />
-              <span>Share</span>
+              <Download className="w-4 h-4" />
+              Download
             </button>
-          )}
+            
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

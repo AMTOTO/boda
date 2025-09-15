@@ -1,28 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Check, ChevronDown, X, Search, Wifi, WifiOff } from 'lucide-react';
+import { Globe, Check, ChevronDown, X, Search } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { translationService } from '../../services/translationService';
 
 export const LanguageSelector: React.FC = () => {
   const { language, setLanguage, languages } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isNLLBConnected, setIsNLLBConnected] = useState(false);
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Test NLLB connection on component mount
-  useEffect(() => {
-    const testConnection = async () => {
-      setIsTestingConnection(true);
-      const connected = await translationService.testNLLBConnection();
-      setIsNLLBConnected(connected);
-      setIsTestingConnection(false);
-    };
-    
-    testConnection();
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,7 +34,7 @@ export const LanguageSelector: React.FC = () => {
 
   // Check if language is supported by NLLB
   const isKenyanLanguage = (code: string) => {
-    return ['sw', 'ki', 'luo', 'luy', 'kam', 'som', 'rw'].includes(code);
+    return ['sw', 'fr', 'rw', 'rn', 'am', 'ln', 'om', 'so'].includes(code);
   };
 
   return (
@@ -67,14 +52,6 @@ export const LanguageSelector: React.FC = () => {
         <span className="hidden sm:inline text-white font-bold">
           {currentLanguage?.nativeName}
         </span>
-        {/* NLLB Connection Status Indicator */}
-        {isTestingConnection ? (
-          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-        ) : isNLLBConnected ? (
-          <Wifi className="w-3 h-3 text-green-400" title="Advanced translation available" />
-        ) : (
-          <WifiOff className="w-3 h-3 text-gray-400" title="Basic translation only" />
-        )}
         <ChevronDown className={`w-4 h-4 text-white transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -91,17 +68,8 @@ export const LanguageSelector: React.FC = () => {
               <h3 className="font-bold text-lg flex items-center space-x-2">
                 <Globe className="w-5 h-5" />
                 <span>Choose Language</span>
-                {isNLLBConnected && (
-                  <div className="flex items-center space-x-1 bg-white/20 px-2 py-1 rounded-full">
-                    <Wifi className="w-3 h-3" />
-                    <span className="text-xs">AI</span>
-                  </div>
-                )}
               </h3>
-              <p className="text-sm opacity-90">Chagua Lugha • Yier Dhok • Thuura Rũrĩmĩ</p>
-              {isNLLBConnected && (
-                <p className="text-xs opacity-80 mt-1">✨ Advanced AI translation for Kenyan languages</p>
-              )}
+              <p className="text-sm opacity-90">Chagua Lugha • Choisir la Langue • Hitamo Ururimi</p>
             </div>
             
             {/* Search input */}
@@ -143,17 +111,11 @@ export const LanguageSelector: React.FC = () => {
                       <div className="text-left">
                         <div className="flex items-center space-x-2">
                           <span className="text-gray-900 font-bold text-lg">{lang.name}</span>
-                          {isKenyanLanguage(lang.code) && isNLLBConnected && (
-                            <div className="flex items-center space-x-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                              <Wifi className="w-3 h-3" />
-                              <span className="text-xs font-bold">AI</span>
-                            </div>
-                          )}
                         </div>
                         <div className="text-gray-600 text-sm">{lang.nativeName}</div>
-                        {isKenyanLanguage(lang.code) && (
+                        {isKenyanLanguage(lang.code) && lang.code !== 'en' && (
                           <div className="text-xs text-green-600 font-medium">
-                            {isNLLBConnected ? '✨ Enhanced AI translation' : '📝 Basic translation'}
+                            📝 {language === 'sw' ? 'Tafsiri ya kimsingi' : 'Basic translation'}
                           </div>
                         )}
                       </div>
@@ -173,17 +135,7 @@ export const LanguageSelector: React.FC = () => {
             {/* Footer with translation info */}
             <div className="p-3 border-t border-gray-200 bg-gray-50">
               <div className="text-xs text-gray-600 text-center">
-                {isNLLBConnected ? (
-                  <div className="flex items-center justify-center space-x-1">
-                    <Wifi className="w-3 h-3 text-green-500" />
-                    <span>Powered by NLLB-200 AI for accurate Kenyan language translation</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center space-x-1">
-                    <WifiOff className="w-3 h-3 text-gray-400" />
-                    <span>Using basic translation • Connect to internet for AI translation</span>
-                  </div>
-                )}
+                <span>{language === 'sw' ? 'Kutumia tafsiri ya kimsingi' : 'Using basic translation for East African languages'}</span>
               </div>
             </div>
           </motion.div>

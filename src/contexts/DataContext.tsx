@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export interface RideRequest {
+interface RideRequest {
   id: string;
   type: 'emergency' | 'vaccine' | 'mch' | 'routine';
   patientName: string;
@@ -15,7 +15,7 @@ export interface RideRequest {
   notes?: string;
 }
 
-export interface HealthAlert {
+interface HealthAlert {
   id: string;
   type: 'gbv' | 'malnutrition' | 'unsafe_delivery' | 'disease_outbreak';
   location: string;
@@ -27,7 +27,7 @@ export interface HealthAlert {
   gpsCoords?: { lat: number; lng: number };
 }
 
-export interface MythReport {
+interface MythReport {
   id: string;
   category: 'vaccine' | 'covid' | 'maternal' | 'general';
   content: string;
@@ -39,7 +39,7 @@ export interface MythReport {
   reach?: number;
 }
 
-export interface YouthMission {
+interface YouthMission {
   id: string;
   title: string;
   description: string;
@@ -51,7 +51,7 @@ export interface YouthMission {
   participants: number;
 }
 
-export interface Household {
+interface Household {
   id: string;
   name: string;
   location: string;
@@ -66,7 +66,7 @@ export interface Household {
   nextVisit?: Date;
 }
 
-export interface Notification {
+interface Notification {
   id: string;
   title: string;
   message: string;
@@ -74,6 +74,25 @@ export interface Notification {
   timestamp: Date;
   read: boolean;
 }
+
+// New interfaces for contributions
+interface ItemContribution {
+  id: string;
+  description: string;
+  value: number;
+  photoUrl?: string;
+  timestamp: Date;
+}
+
+interface AnimalContribution {
+  id: string;
+  animalType: 'cow' | 'goat' | 'sheep' | 'chicken' | 'other';
+  quantity: number;
+  estimatedValuePerAnimal: number;
+  totalValue: number;
+  timestamp: Date;
+}
+
 
 interface DataContextType {
   rideRequests: RideRequest[];
@@ -83,6 +102,8 @@ interface DataContextType {
   households: Household[];
   notifications: Notification[];
   communityFunds: number;
+  itemContributions: ItemContribution[];
+  animalContributions: AnimalContribution[];
   addRideRequest: (request: Omit<RideRequest, 'id' | 'timestamp'>) => void;
   updateRideRequest: (id: string, updates: Partial<RideRequest>) => void;
   addHealthAlert: (alert: Omit<HealthAlert, 'id' | 'timestamp'>) => void;
@@ -94,7 +115,8 @@ interface DataContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
   markNotificationAsRead: (id: string) => void;
   addToMSupu: (amount: number) => void;
-  contributeItems: (description: string, value: number) => void;
+  contributeItems: (description: string, value: number, photoUrl?: string) => void;
+  contributeAnimals: (type: AnimalContribution['animalType'], quantity: number, estimatedValuePerAnimal: number) => void;
   startQuizSession: () => void;
   recordMythWithVoice: (audioBlob: Blob) => void;
 }
@@ -106,7 +128,10 @@ export const useData = () => {
   if (context === undefined) {
     throw new Error('useData must be used within a DataProvider');
   }
-  return context;
+  return {
+    ...context,
+    communityFunds: context.communityFunds ?? 12500 // Fallback value
+  };
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -116,7 +141,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [youthMissions, setYouthMissions] = useState<YouthMission[]>([]);
   const [households, setHouseholds] = useState<Household[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [communityFunds, setCommunityFunds] = useState(12500);
+  const [communityFunds, setCommunityFunds] = useState<number>(12500);
+  const [itemContributions, setItemContributions] = useState<ItemContribution[]>([]);
+  const [animalContributions, setAnimalContributions] = useState<AnimalContribution[]>([]);
 
   useEffect(() => {
     // Initialize with mock data
@@ -271,7 +298,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date()
     };
     setRideRequests(prev => [newRequest, ...prev]);
-    
+
     // Add notification
     addNotification({
       title: 'Transport Request Submitted',
@@ -294,7 +321,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date()
     };
     setHealthAlerts(prev => [newAlert, ...prev]);
-    
+
     // Add notification
     addNotification({
       title: 'Emergency Report Submitted',
@@ -317,7 +344,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date()
     };
     setMythReports(prev => [newReport, ...prev]);
-    
+
     // Add notification
     addNotification({
       title: 'Myth Report Submitted',
@@ -339,7 +366,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `household_${Date.now()}`
     };
     setHouseholds(prev => [newHousehold, ...prev]);
-    
+
     // Add notification
     addNotification({
       title: 'Household Added',
@@ -380,15 +407,44 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const contributeItems = (description: string, value: number) => {
+  const contributeItems = (description: string, value: number, photoUrl?: string) => {
+    const newItemContribution: ItemContribution = {
+      id: `item_${Date.now()}`,
+      description,
+      value,
+      photoUrl,
+      timestamp: new Date()
+    };
+    setItemContributions(prev => [newItemContribution, ...prev]);
     setCommunityFunds(prev => prev + value);
     addNotification({
       title: 'Item Contribution',
-      message: `${description} contributed to community fund (Value: KSh ${value})`,
+      message: `${description} contributed (value: KSh ${value})`,
       type: 'success',
       read: false
     });
   };
+
+  const contributeAnimals = (type: AnimalContribution['animalType'], quantity: number, estimatedValuePerAnimal: number) => {
+    const totalValue = quantity * estimatedValuePerAnimal;
+    const newAnimalContribution: AnimalContribution = {
+      id: `animal_${Date.now()}`,
+      animalType: type,
+      quantity,
+      estimatedValuePerAnimal,
+      totalValue,
+      timestamp: new Date()
+    };
+    setAnimalContributions(prev => [newAnimalContribution, ...prev]);
+    setCommunityFunds(prev => prev + totalValue);
+    addNotification({
+      title: 'Animal Contribution',
+      message: `${quantity} ${type}(s) contributed (Total Value: KSh ${totalValue})`,
+      type: 'success',
+      read: false
+    });
+  };
+
 
   const startQuizSession = () => {
     addNotification({
@@ -418,6 +474,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       households,
       notifications,
       communityFunds,
+      itemContributions,
+      animalContributions,
       addRideRequest,
       updateRideRequest,
       addHealthAlert,
@@ -430,6 +488,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       markNotificationAsRead,
       addToMSupu,
       contributeItems,
+      contributeAnimals,
       startQuizSession,
       recordMythWithVoice
     }}>
