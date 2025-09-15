@@ -196,16 +196,16 @@ export const HealthWorkerDashboard: React.FC = () => {
                 <h1 className="text-4xl font-black text-gray-900">
                   {language === 'sw' ? '👩‍⚕️ Dashibodi ya Mfanyakazi wa Afya' : '👩‍⚕️ Health Worker Dashboard'}
                 </h1>
-                <p className="text-lg text-blue-600 font-bold">
+                <p className="text-lg text-purple-600 font-bold">
                   {language === 'sw' ? 'Huduma za Kimatibabu na Chanjo' : 'Medical Services and Vaccinations'}
                 </p>
               </div>
             </div>
-            <div className="bg-blue-100 rounded-2xl p-4 inline-block">
-              <p className="text-sm text-blue-800 font-semibold">
+            <div className="bg-purple-100 rounded-2xl p-4 inline-block">
+              <p className="text-sm text-purple-800 font-semibold">
                 {language === 'sw' ? `Karibu, ${user?.name}!` : `Welcome, ${user?.name}!`}
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-purple-700">
                 {language === 'sw' ? `Wagonjwa ${patients.length} • Chanjo ${vaccines.length}` : `${patients.length} Patients • ${vaccines.length} Vaccines`}
               </p>
             </div>
@@ -222,7 +222,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('patients')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+            className="min-h-[140px] bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">👥</div>
             <Users className="w-8 h-8" />
@@ -244,7 +244,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('vaccines')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+            className="min-h-[140px] bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">💉</div>
             <Syringe className="w-8 h-8" />
@@ -266,7 +266,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('transport')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+            className="min-h-[140px] bg-gradient-to-br from-purple-400 to-purple-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">🚲</div>
             <Bike className="w-8 h-8" />
@@ -288,7 +288,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('bsenseAI')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+            className="min-h-[140px] bg-gradient-to-br from-purple-700 to-purple-800 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">🧠</div>
             <Brain className="w-8 h-8" />
@@ -310,7 +310,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('qrScanner')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+            className="min-h-[140px] bg-gradient-to-br from-purple-300 to-purple-400 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">📱</div>
             <QrCode className="w-8 h-8" />
@@ -332,7 +332,7 @@ export const HealthWorkerDashboard: React.FC = () => {
             onClick={() => setActiveModal('wallet')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="min-h-[140px] bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
+           className="min-h-[140px] bg-gradient-to-br from-teal-500 to-emerald-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all p-6 flex flex-col items-center justify-center space-y-3"
           >
             <div className="text-5xl">💰</div>
             <Wallet className="w-8 h-8" />
@@ -379,7 +379,7 @@ export const HealthWorkerDashboard: React.FC = () => {
                 {/* Apply for Loan */}
                 <button
                   onClick={() => setActiveModal('medicalLoanOptions')}
-                  className="w-full p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  className="w-full p-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl hover:from-purple-700 hover:to-purple-800 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
                 >
                   <DollarSign className="w-6 h-6" />
                   <div className="text-left">
@@ -391,7 +391,7 @@ export const HealthWorkerDashboard: React.FC = () => {
                 {/* Add Savings */}
                 <button
                   onClick={() => setActiveModal('addSavings')}
-                  className="w-full p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  className="w-full p-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl hover:from-teal-600 hover:to-emerald-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
                 >
                   <PiggyBank className="w-6 h-6" />
                   <div className="text-left">
@@ -403,7 +403,7 @@ export const HealthWorkerDashboard: React.FC = () => {
                 {/* Credit Coach */}
                 <button
                   onClick={() => setShowCreditCoach(true)}
-                  className="w-full p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  className="w-full p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
                 >
                   <Brain className="w-6 h-6" />
                   <div className="text-left">
@@ -415,7 +415,7 @@ export const HealthWorkerDashboard: React.FC = () => {
                 {/* Rewards */}
                 <button
                   onClick={() => setActiveModal('rewards')}
-                  className="w-full p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
+                  className="w-full p-4 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-2xl hover:from-purple-500 hover:to-purple-600 transition-all transform hover:scale-105 shadow-lg min-h-[60px] flex items-center space-x-3"
                 >
                   <Award className="w-6 h-6" />
                   <div className="text-left">

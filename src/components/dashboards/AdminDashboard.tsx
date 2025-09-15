@@ -225,16 +225,16 @@ export const AdminDashboard: React.FC = () => {
                 <h1 className="text-4xl font-black text-gray-900">
                   {language === 'sw' ? '⚙️ Dashibodi ya Msimamizi' : '⚙️ Admin Dashboard'}
                 </h1>
-                <p className="text-lg text-purple-600 font-bold">
+                <p className="text-lg text-gray-600 font-bold">
                   {language === 'sw' ? 'Usimamizi wa Mfumo wa ParaBoda' : 'ParaBoda System Management'}
                 </p>
               </div>
             </div>
-            <div className="bg-purple-100 rounded-2xl p-4 inline-block">
-              <p className="text-sm text-purple-800 font-semibold">
+            <div className="bg-gray-100 rounded-2xl p-4 inline-block">
+              <p className="text-sm text-gray-800 font-semibold">
                 {language === 'sw' ? `Karibu, ${user?.name}!` : `Welcome, ${user?.name}!`}
               </p>
-              <p className="text-xs text-purple-700">
+              <p className="text-xs text-gray-700">
                 {language === 'sw' ? 'Msimamizi Mkuu' : 'Super Administrator'}
               </p>
             </div>
@@ -359,7 +359,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <button
               onClick={() => setActiveModal('userManagement')}
-              className="min-h-[120px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
+              className="min-h-[120px] bg-gradient-to-br from-gray-500 to-gray-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
             >
               <Users className="w-10 h-10" />
               <span className="font-bold text-lg">
@@ -369,7 +369,7 @@ export const AdminDashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveModal('systemSettings')}
-              className="min-h-[120px] bg-gradient-to-br from-gray-500 to-gray-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
+              className="min-h-[120px] bg-gradient-to-br from-gray-600 to-gray-700 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
             >
               <Settings className="w-10 h-10" />
               <span className="font-bold text-lg">
@@ -379,7 +379,7 @@ export const AdminDashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveModal('reports')}
-              className="min-h-[120px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
+              className="min-h-[120px] bg-gradient-to-br from-gray-400 to-gray-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
             >
               <FileText className="w-10 h-10" />
               <span className="font-bold text-lg">
@@ -389,7 +389,7 @@ export const AdminDashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveModal('notifications')}
-              className="min-h-[120px] bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
+              className="min-h-[120px] bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 p-6 flex flex-col items-center justify-center space-y-3"
             >
               <Bell className="w-10 h-10" />
               <span className="font-bold text-lg">

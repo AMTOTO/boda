@@ -107,17 +107,17 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   const getHeaderBgClass = () => {
     switch (user?.role) {
       case 'community':
-        return 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500';
+        return 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700';
       case 'rider':
-        return 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500';
+        return 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700';
       case 'chv':
-        return 'bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500';
+        return 'bg-gradient-to-r from-green-500 via-green-600 to-green-700';
       case 'health_worker':
-        return 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500';
+        return 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700';
       case 'admin':
-        return 'bg-gradient-to-r from-gray-600 via-slate-600 to-zinc-600';
+        return 'bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800';
       default:
-        return 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500';
+        return 'bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-700';
     }
   };
 
@@ -173,9 +173,9 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 
             {/* Center - ParaBoda Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
+              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
                 <img 
-                  src="/Rider mother and child.jpg" 
+                  src="/PARABODA LOGO.png" 
                   alt="ParaBoda Logo"
                   className="w-full h-full object-cover"
                 />
