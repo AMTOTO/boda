@@ -361,16 +361,16 @@ export const RegistrationPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-2xl border-4 border-emerald-400">
+            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-2xl border-4 border-emerald-400">
               <img 
-                src="/Rider mother and child.jpg" 
+                src="/PARABODA LOGO.png" 
                 alt="ParaBoda Logo"
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">ParaBoda</h1>
-              <p className="text-emerald-600 font-medium">
+              <h1 className="text-4xl font-bold text-gray-900">ParaBoda</h1>
+              <p className="text-emerald-600 font-bold text-xl">
                 {language === 'sw' ? 'Afya Pamoja' : language === 'fr' ? 'Santé Ensemble' : 'Health Together'}
               </p>
             </div>

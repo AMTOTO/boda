@@ -174,16 +174,16 @@ export const AuthPage: React.FC = () => {
       >
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="w-16 h-16 rounded-3xl overflow-hidden shadow-2xl border-4 border-yellow-400">
+            <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-2xl border-4 border-yellow-400">
               <img 
-                src="/Rider mother and child.jpg" 
+                src="/PARABODA LOGO.png" 
                 alt="ParaBoda Logo"
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-gray-900">ParaBoda</h1>
-              <p className="text-green-600 font-black text-xl">
+              <h1 className="text-5xl font-black text-gray-900">ParaBoda</h1>
+              <p className="text-green-600 font-black text-2xl">
                 {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
               </p>
             </div>

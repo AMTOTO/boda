@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/Rider mother and child.jpg",
+      "src": "/PARABODA LOGO.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/Rider mother and child.jpg",
+      "src": "/PARABODA LOGO.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -34,7 +34,7 @@
       "url": "/community",
       "icons": [
         {
-          "src": "/Rider mother and child.jpg",
+          "src": "/PARABODA LOGO.png",
           "sizes": "96x96"
         }
       ]
@@ -46,7 +46,7 @@
       "url": "/rider",
       "icons": [
         {
-          "src": "/Rider mother and child.jpg",
+          "src": "/PARABODA LOGO.png",
           "sizes": "96x96"
         }
       ]
@@ -58,7 +58,7 @@
       "url": "/chv",
       "icons": [
         {
-          "src": "/Rider mother and child.jpg",
+          "src": "/PARABODA LOGO.png",
           "sizes": "96x96"
         }
       ]
@@ -70,7 +70,7 @@
       "url": "/health-worker",
       "icons": [
         {
-          "src": "/Rider mother and child.jpg",
+          "src": "/PARABODA LOGO.png",
           "sizes": "96x96"
         }
       ]
@@ -78,16 +78,16 @@
   ],
   "screenshots": [
     {
-      "src": "/Rider mother and child.jpg",
+      "src": "/PARABODA LOGO.png",
       "sizes": "1280x720",
-      "type": "image/jpeg",
+      "type": "image/png",
       "platform": "wide",
       "label": "ParaBoda Dashboard Overview"
     },
     {
-      "src": "/Rider mother and child.jpg",
+      "src": "/PARABODA LOGO.png",
       "sizes": "750x1334",
-      "type": "image/jpeg",
+      "type": "image/png",
       "platform": "narrow",
       "label": "ParaBoda Mobile Interface"
     }
