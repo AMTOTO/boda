@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { governanceService, AdministrativeUnit } from '../services/governanceService';
 
 export type UserRole = 'community' | 'rider' | 'chv' | 'health_worker' | 'admin';
 
@@ -9,27 +10,38 @@ interface User {
   phone?: string;
   role: UserRole;
   location?: string;
+  country?: string;
+  administrativeUnits?: string[];
+  administrativePath?: AdministrativeUnit[];
+  village?: string;
   avatar?: string;
   qrCode?: string;
   isOnline?: boolean;
   points?: number;
   level?: string;
+  preferredLanguage?: string;
+  preferredCurrency?: string;
+  gpsLocation?: {lat: number, lng: number};
+  registrationDate?: string;
+  lastLogin?: string;
 }
 
 interface RegistrationData {
   name: string;
   role: UserRole;
   location: string;
+  village?: string;
   dateOfBirth?: string;
   country?: string;
-  county?: string;
-  subCounty?: string;
-  village?: string;
+  administrativeUnits?: string[];
+  administrativePath?: AdministrativeUnit[];
   gpsLocation?: {lat: number, lng: number};
   email?: string;
   password?: string;
   phone?: string;
   pin?: string;
+  preferredLanguage?: string;
+  preferredCurrency?: string;
 }
 
 interface AuthContextType {
@@ -39,6 +51,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   setPreviewUser: (role: UserRole) => void;
+  updateUserProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,10 +113,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: 'amina@preview.com',
         role: 'community',
         phone: '+254712345678',
-        location: 'Kiambu County',
+        location: 'Kiambu Village, Kiambu County, Kenya',
+        country: 'KE',
+        administrativeUnits: ['KE-13', 'KE-13-09'],
+        village: 'Kiambu Village',
         qrCode: 'QR-COMM-PREVIEW',
         points: 150,
-        level: 'Bronze'
+        level: 'Bronze',
+        preferredLanguage: 'sw',
+        preferredCurrency: 'KES',
+        gpsLocation: { lat: -1.1743, lng: 36.8356 },
+        registrationDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        lastLogin: new Date().toISOString()
       },
       'rider': {
         id: 'preview-rider',
@@ -111,10 +132,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: 'john@preview.com',
         role: 'rider',
         phone: '+254723456789',
-        location: 'Nakuru County',
+        location: 'Nakuru West, Nakuru County, Kenya',
+        country: 'KE',
+        administrativeUnits: ['KE-31'],
+        village: 'Nakuru West',
         isOnline: true,
         points: 320,
-        level: 'Silver'
+        level: 'Silver',
+        preferredLanguage: 'en',
+        preferredCurrency: 'KES',
+        gpsLocation: { lat: -0.3031, lng: 36.0800 },
+        registrationDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        lastLogin: new Date().toISOString()
       },
       'chv': {
         id: 'preview-chv',
@@ -122,9 +151,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: 'sarah@preview.com',
         role: 'chv',
         phone: '+254734567890',
-        location: 'Kisumu County',
+        location: 'Kisumu Central, Kisumu County, Kenya',
+        country: 'KE',
+        administrativeUnits: ['KE-17'],
+        village: 'Kisumu Central',
         points: 500,
-        level: 'Gold'
+        level: 'Gold',
+        preferredLanguage: 'sw',
+        preferredCurrency: 'KES',
+        gpsLocation: { lat: -0.1022, lng: 34.7617 },
+        registrationDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+        lastLogin: new Date().toISOString()
       },
       'health_worker': {
         id: 'preview-health',
@@ -132,9 +169,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: 'mary@preview.com',
         role: 'health_worker',
         phone: '+254756789012',
-        location: 'Meru County',
+        location: 'Meru Town, Meru County, Kenya',
+        country: 'KE',
+        administrativeUnits: ['KE-26'],
+        village: 'Meru Town',
         points: 400,
-        level: 'Gold'
+        level: 'Gold',
+        preferredLanguage: 'en',
+        preferredCurrency: 'KES',
+        gpsLocation: { lat: 0.0467, lng: 37.6556 },
+        registrationDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+        lastLogin: new Date().toISOString()
       },
       'admin': {
         id: 'preview-admin',
@@ -142,9 +187,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: 'peter@preview.com',
         role: 'admin',
         phone: '+254745678901',
-        location: 'Nairobi County',
+        location: 'Nairobi Central, Nairobi County, Kenya',
+        country: 'KE',
+        administrativeUnits: ['KE-30'],
+        village: 'Nairobi Central',
         points: 1000,
-        level: 'Platinum'
+        level: 'Platinum',
+        preferredLanguage: 'en',
+        preferredCurrency: 'KES',
+        gpsLocation: { lat: -1.2921, lng: 36.8219 },
+        registrationDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+        lastLogin: new Date().toISOString()
       }
     };
 
@@ -171,10 +224,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'community@test.com',
           role: 'community',
           phone: '+254712345678',
-          location: 'Kiambu County',
+          location: 'Kiambu Village, Kiambu County, Kenya',
+          country: 'KE',
+          administrativeUnits: ['KE-13', 'KE-13-09'],
+          village: 'Kiambu Village',
           qrCode: 'QR-COMM-001',
           points: 150,
-          level: 'Bronze'
+          level: 'Bronze',
+          preferredLanguage: 'sw',
+          preferredCurrency: 'KES',
+          lastLogin: new Date().toISOString()
         },
         'rider@test.com': {
           id: '2',
@@ -182,10 +241,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'rider@test.com',
           role: 'rider',
           phone: '+254723456789',
-          location: 'Nakuru County',
+          location: 'Nakuru West, Nakuru County, Kenya',
+          country: 'KE',
+          administrativeUnits: ['KE-31'],
+          village: 'Nakuru West',
           isOnline: true,
           points: 320,
-          level: 'Silver'
+          level: 'Silver',
+          preferredLanguage: 'en',
+          preferredCurrency: 'KES',
+          lastLogin: new Date().toISOString()
         },
         'chv@test.com': {
           id: '3',
@@ -193,9 +258,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'chv@test.com',
           role: 'chv',
           phone: '+254734567890',
-          location: 'Kisumu County',
+          location: 'Kisumu Central, Kisumu County, Kenya',
+          country: 'KE',
+          administrativeUnits: ['KE-17'],
+          village: 'Kisumu Central',
           points: 500,
-          level: 'Gold'
+          level: 'Gold',
+          preferredLanguage: 'sw',
+          preferredCurrency: 'KES',
+          lastLogin: new Date().toISOString()
         },
         'admin@test.com': {
           id: '4',
@@ -203,9 +274,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'admin@test.com',
           role: 'admin',
           phone: '+254745678901',
-          location: 'Nairobi County',
+          location: 'Nairobi Central, Nairobi County, Kenya',
+          country: 'KE',
+          administrativeUnits: ['KE-30'],
+          village: 'Nairobi Central',
           points: 1000,
-          level: 'Platinum'
+          level: 'Platinum',
+          preferredLanguage: 'en',
+          preferredCurrency: 'KES',
+          lastLogin: new Date().toISOString()
         },
         'health@test.com': {
           id: '5',
@@ -213,14 +290,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'health@test.com',
           role: 'health_worker',
           phone: '+254756789012',
-          location: 'Meru County',
+          location: 'Meru Town, Meru County, Kenya',
+          country: 'KE',
+          administrativeUnits: ['KE-26'],
+          village: 'Meru Town',
           points: 400,
-          level: 'Gold'
+          level: 'Gold',
+          preferredLanguage: 'en',
+          preferredCurrency: 'KES',
+          lastLogin: new Date().toISOString()
         }
       };
 
       const mockUser = mockUsers[email];
       if (mockUser && password === 'password') {
+        mockUser.lastLogin = new Date().toISOString();
         setUser(mockUser);
         localStorage.setItem('paraboda_user', JSON.stringify(mockUser));
       } else {
@@ -248,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('User already exists with this email or phone number');
       }
       
-      // Create new user
+      // Create new user with enhanced data
       const newUser: User = {
         id: `user_${Date.now()}`,
         name: data.name,
@@ -256,9 +340,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: data.phone,
         role: data.role,
         location: data.location,
+        village: data.village,
+        country: data.country,
+        administrativeUnits: data.administrativeUnits,
+        administrativePath: data.administrativePath,
+        gpsLocation: data.gpsLocation,
         qrCode: `QR-${data.role.toUpperCase()}-${Date.now()}`,
         points: 0,
         level: 'Bronze',
+        preferredLanguage: data.preferredLanguage || 'en',
+        preferredCurrency: data.preferredCurrency || 'KES',
+        registrationDate: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
         isOnline: data.role === 'rider' ? false : undefined
       };
       
@@ -277,6 +370,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = (updates: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    
+    try {
+      localStorage.setItem('paraboda_user', JSON.stringify(updatedUser));
+      
+      // Update in registered users list
+      const existingUsers = JSON.parse(localStorage.getItem('paraboda_registered_users') || '[]');
+      const userIndex = existingUsers.findIndex((u: any) => u.id === user.id);
+      if (userIndex !== -1) {
+        existingUsers[userIndex] = updatedUser;
+        localStorage.setItem('paraboda_registered_users', JSON.stringify(existingUsers));
+      }
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     try {
@@ -287,7 +401,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading, setPreviewUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      register, 
+      logout, 
+      isLoading, 
+      setPreviewUser,
+      updateUserProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );

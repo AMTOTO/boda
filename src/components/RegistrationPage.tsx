@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { LanguageSelector } from './common/LanguageSelector';
+import { GovernanceSelector } from './common/GovernanceSelector';
 import { QRCodeDisplay } from './common/QRCodeDisplay';
+import { governanceService, AdministrativeUnit } from '../services/governanceService';
 import { 
   User, 
   Bike, 
@@ -23,7 +26,9 @@ import {
   Calendar,
   Globe,
   Download,
-  QrCode
+  QrCode,
+  ChevronRight,
+  AlertTriangle
 } from 'lucide-react';
 
 export const RegistrationPage: React.FC = () => {
@@ -32,9 +37,9 @@ export const RegistrationPage: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     dateOfBirth: '',
-    country: 'Kenya',
-    county: '',
-    subCounty: '',
+    country: 'KE',
+    administrativeUnits: [] as string[],
+    administrativePath: [] as AdministrativeUnit[],
     village: '',
     phone: '',
     email: '',
@@ -43,7 +48,9 @@ export const RegistrationPage: React.FC = () => {
     confirmPin: '',
     confirmPassword: '',
     role: 'community' as UserRole,
-    agreeToTerms: false
+    agreeToTerms: false,
+    preferredLanguage: 'en' as string,
+    preferredCurrency: 'KES' as string
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showPin, setShowPin] = useState(false);
@@ -53,89 +60,85 @@ export const RegistrationPage: React.FC = () => {
   const [generatedQRCode, setGeneratedQRCode] = useState('');
   
   const { register } = useAuth();
-  const { t, language } = useLanguage();
+  const { language, t } = useLanguage();
+  const { getCountryCurrency } = useCurrency();
   const navigate = useNavigate();
 
   const roles = [
     {
       id: 'community' as UserRole,
-      name: language === 'sw' ? 'Mzazi/Mlezi' : language === 'fr' ? 'Soignant' : language === 'rw' ? 'Umubyeyi' : 'Caregiver',
-      description: language === 'sw' ? 'Pata huduma za afya, usafiri, zawadi' : language === 'fr' ? 'Services de santé, transport, récompenses' : 'Health services, transport, rewards',
+      name: t('role.caregiver'),
+      description: t('role.caregiver_desc'),
       icon: User,
       color: 'emerald'
     },
     {
       id: 'rider' as UserRole,
-      name: language === 'sw' ? 'Msafiri wa Paraboda' : language === 'fr' ? 'Conducteur ParaBoda' : language === 'rw' ? 'Umushoferi wa ParaBoda' : 'ParaBoda Rider',
-      description: language === 'sw' ? 'Safirisha wagonjwa, ripoti dharura' : language === 'fr' ? 'Transporter les patients, signaler les urgences' : 'Transport patients, report emergencies',
+      name: t('role.rider'),
+      description: t('role.rider_desc'),
       icon: Bike,
       color: 'blue'
     },
     {
       id: 'chv' as UserRole,
-      name: language === 'sw' ? 'Mjumbe wa Afya ya Jamii' : language === 'fr' ? 'Agent de Santé Communautaire' : language === 'rw' ? 'Umukozi w\'ubuzima bw\'abaturage' : 'Community Health Volunteer',
-      description: language === 'sw' ? 'Simamia afya ya jamii, idhinisha usafiri' : language === 'fr' ? 'Gérer la santé communautaire, approuver le transport' : 'Manage community health, approve transport',
+      name: t('role.chv'),
+      description: t('role.chv_desc'),
       icon: Heart,
       color: 'purple'
     },
     {
       id: 'health_worker' as UserRole,
-      name: language === 'sw' ? 'Mfanyakazi wa Afya' : language === 'fr' ? 'Agent de Santé' : language === 'rw' ? 'Umukozi w\'ubuzima' : 'Health Worker',
-      description: language === 'sw' ? 'Toa huduma za kimatibabu, simamia chanjo' : language === 'fr' ? 'Fournir des services médicaux, gérer les vaccins' : 'Provide medical services, manage vaccines',
+      name: t('role.health_worker'),
+      description: t('role.health_worker_desc'),
       icon: Stethoscope,
       color: 'indigo'
     }
   ];
 
-  const eastAfricanCountries = [
-    { code: 'KE', name: 'Kenya', flag: '🇰🇪', currency: 'KSh' },
-    { code: 'UG', name: 'Uganda', flag: '🇺🇬', currency: 'UGX' },
-    { code: 'TZ', name: 'Tanzania', flag: '🇹🇿', currency: 'TZS' },
-    { code: 'RW', name: 'Rwanda', flag: '🇷🇼', currency: 'RWF' },
-    { code: 'BI', name: 'Burundi', flag: '🇧🇮', currency: 'BIF' },
-    { code: 'SS', name: 'South Sudan', flag: '🇸🇸', currency: 'SSP' },
-    { code: 'ET', name: 'Ethiopia', flag: '🇪🇹', currency: 'ETB' },
-    { code: 'SO', name: 'Somalia', flag: '🇸🇴', currency: 'SOS' },
-    { code: 'DJ', name: 'Djibouti', flag: '🇩🇯', currency: 'DJF' }
-  ];
+  const countries = governanceService.getCountries();
 
-  const kenyanCounties = [
-    'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa', 'Homa Bay',
-    'Isiolo', 'Kajiado', 'Kakamega', 'Kericho', 'Kiambu', 'Kilifi', 'Kirinyaga', 'Kisii',
-    'Kisumu', 'Kitui', 'Kwale', 'Laikipia', 'Lamu', 'Machakos', 'Makueni', 'Mandera',
-    'Marsabit', 'Meru', 'Migori', 'Mombasa', 'Murang\'a', 'Nairobi', 'Nakuru', 'Nandi',
-    'Narok', 'Nyamira', 'Nyandarua', 'Nyeri', 'Samburu', 'Siaya', 'Taita-Taveta',
-    'Tana River', 'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
-  ];
-
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[] | AdministrativeUnit[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
+
+    // Auto-set currency based on country selection
+    if (field === 'country' && typeof value === 'string') {
+      const countryCurrency = getCountryCurrency(value);
+      setFormData(prev => ({ ...prev, preferredCurrency: countryCurrency }));
+    }
+  };
+
+  const handleGovernanceChange = (units: string[], fullPath: AdministrativeUnit[]) => {
+    setFormData(prev => ({
+      ...prev,
+      administrativeUnits: units,
+      administrativePath: fullPath
+    }));
   };
 
   const validateStep1 = () => {
     if (!formData.fullName.trim()) {
-      setError(language === 'sw' ? 'Tafadhali ingiza jina lako kamili' : 'Please enter your full name');
+      setError(t('validation.required_name', { defaultValue: 'Please enter your full name' }));
       return false;
     }
     if (!formData.dateOfBirth) {
-      setError(language === 'sw' ? 'Tafadhali chagua tarehe ya kuzaliwa' : 'Please select your date of birth');
+      setError(t('validation.required_dob', { defaultValue: 'Please select your date of birth' }));
       return false;
     }
     if (!formData.role) {
-      setError(language === 'sw' ? 'Tafadhali chagua jukumu lako' : 'Please select your role');
+      setError(t('validation.required_role', { defaultValue: 'Please select your role' }));
       return false;
     }
     if (!formData.country) {
-      setError(language === 'sw' ? 'Tafadhali chagua nchi yako' : 'Please select your country');
+      setError(t('validation.required_country', { defaultValue: 'Please select your country' }));
       return false;
     }
-    if (!formData.county) {
-      setError(language === 'sw' ? 'Tafadhali chagua kaunti/mkoa wako' : 'Please select your county/region');
+    if (formData.administrativeUnits.length === 0) {
+      setError(t('validation.required_admin_unit', { defaultValue: 'Please select your administrative unit' }));
       return false;
     }
     if (!formData.village.trim()) {
-      setError(language === 'sw' ? 'Tafadhali ingiza kijiji chako' : 'Please enter your village');
+      setError(t('validation.required_village', { defaultValue: 'Please enter your village' }));
       return false;
     }
     return true;
@@ -144,45 +147,45 @@ export const RegistrationPage: React.FC = () => {
   const validateStep2 = () => {
     if (registrationMethod === 'phone') {
       if (!formData.phone.trim()) {
-        setError(language === 'sw' ? 'Tafadhali ingiza nambari yako ya simu' : 'Please enter your phone number');
+        setError(t('validation.invalid_phone'));
         return false;
       }
       if (!formData.pin) {
-        setError(language === 'sw' ? 'Tafadhali ingiza PIN ya nambari 4' : 'Please enter a 4-digit PIN');
+        setError(t('validation.pin_required'));
         return false;
       }
       if (formData.pin.length !== 4 || !/^\d{4}$/.test(formData.pin)) {
-        setError(language === 'sw' ? 'PIN lazima iwe na nambari 4 tu' : 'PIN must be exactly 4 digits');
+        setError(t('validation.pin_format', { defaultValue: 'PIN must be exactly 4 digits' }));
         return false;
       }
       if (formData.pin !== formData.confirmPin) {
-        setError(language === 'sw' ? 'PIN hazilingani' : 'PINs do not match');
+        setError(t('validation.pin_match'));
         return false;
       }
     } else {
       if (!formData.email.trim()) {
-        setError(language === 'sw' ? 'Tafadhali ingiza anwani yako ya barua pepe' : 'Please enter your email address');
+        setError(t('validation.invalid_email'));
         return false;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        setError(language === 'sw' ? 'Tafadhali ingiza anwani sahihi ya barua pepe' : 'Please enter a valid email address');
+        setError(t('validation.invalid_email'));
         return false;
       }
       if (!formData.password) {
-        setError(language === 'sw' ? 'Tafadhali ingiza nenosiri' : 'Please enter a password');
+        setError(t('validation.password_required', { defaultValue: 'Please enter a password' }));
         return false;
       }
       if (formData.password.length < 6) {
-        setError(language === 'sw' ? 'Nenosiri lazima liwe na angalau herufi 6' : 'Password must be at least 6 characters long');
+        setError(t('validation.password_min'));
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
-        setError(language === 'sw' ? 'Nenosiri hazilingani' : 'Passwords do not match');
+        setError(t('validation.passwords_match'));
         return false;
       }
     }
     if (!formData.agreeToTerms) {
-      setError(language === 'sw' ? 'Tafadhali kubali masharti na hali' : 'Please agree to the terms and conditions');
+      setError(t('validation.terms_required'));
       return false;
     }
     return true;
@@ -207,12 +210,15 @@ export const RegistrationPage: React.FC = () => {
       name: userData.fullName,
       role: userData.role,
       country: userData.country,
-      location: `${userData.village}, ${userData.subCounty}, ${userData.county}`,
+      location: governanceService.formatLocationString(userData.administrativeUnits, false),
+      village: userData.village,
       phone: userData.phone,
       email: userData.email,
       dateOfBirth: userData.dateOfBirth,
       registrationDate: new Date().toISOString(),
-      qrVersion: '1.0'
+      preferredLanguage: userData.preferredLanguage,
+      preferredCurrency: userData.preferredCurrency,
+      qrVersion: '2.0'
     };
     return JSON.stringify(qrData);
   };
@@ -222,7 +228,6 @@ export const RegistrationPage: React.FC = () => {
     if (!validateStep2()) return;
 
     setIsLoading(true);
-    setError('');
 
     try {
       // Get current location
@@ -235,25 +240,31 @@ export const RegistrationPage: React.FC = () => {
       const registrationData = {
         name: formData.fullName,
         role: formData.role,
-        location: `${formData.village}, ${formData.subCounty}, ${formData.county}, ${formData.country}`,
+        location: governanceService.formatLocationString(formData.administrativeUnits, true),
+        village: formData.village,
         dateOfBirth: formData.dateOfBirth,
         country: formData.country,
-        county: formData.county,
-        subCounty: formData.subCounty,
-        village: formData.village,
+        administrativeUnits: formData.administrativeUnits,
+        administrativePath: formData.administrativePath,
         gpsLocation: location,
+        preferredLanguage: language,
+        preferredCurrency: getCountryCurrency(formData.country),
         ...credentials
       };
 
       await register(registrationData);
 
       // Generate QR code
-      const qrCodeData = generateQRCode(formData);
+      const qrCodeData = generateQRCode({
+        ...formData,
+        preferredLanguage: language,
+        preferredCurrency: getCountryCurrency(formData.country)
+      });
       setGeneratedQRCode(qrCodeData);
       setRegistrationComplete(true);
 
     } catch (err: any) {
-      setError(err.message || (language === 'sw' ? 'Usajili umeshindwa. Tafadhali jaribu tena.' : 'Registration failed. Please try again.'));
+      setError(err.message || t('status.error'));
     } finally {
       setIsLoading(false);
     }
@@ -308,25 +319,22 @@ export const RegistrationPage: React.FC = () => {
           </div>
           
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {language === 'sw' ? 'Usajili Umekamilika!' : language === 'fr' ? 'Inscription Terminée!' : 'Registration Complete!'}
+            {t('register.registration_complete')}
           </h2>
           
           <p className="text-gray-600 mb-6">
-            {language === 'sw' 
-              ? 'Akaunti yako imeundwa kikamilifu. Pakua QR code yako kwa kuingia haraka.'
-              : language === 'fr'
-              ? 'Votre compte a été créé avec succès. Téléchargez votre code QR pour une connexion rapide.'
-              : 'Your account has been created successfully. Download your QR code for quick login.'
-            }
+            {t('register.qr_generated')}
           </p>
 
-          <div className="mb-6">
-            <QRCodeDisplay
-              value={generatedQRCode}
-              title={language === 'sw' ? 'QR Code Yako ya Kuingia' : language === 'fr' ? 'Votre Code QR de Connexion' : 'Your Login QR Code'}
-              description={language === 'sw' ? 'Tumia hii kuingia haraka' : language === 'fr' ? 'Utilisez ceci pour une connexion rapide' : 'Use this for quick login'}
-              size={200}
-            />
+          <div className="mb-6 bg-gray-50 p-4 rounded-2xl">
+            <div className="w-48 h-48 mx-auto bg-white p-4 rounded-xl border-2 border-gray-200">
+              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                <QrCode className="w-20 h-20 text-gray-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              {language === 'sw' ? 'QR Code Yako ya Kuingia' : 'Your Login QR Code'}
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -334,16 +342,11 @@ export const RegistrationPage: React.FC = () => {
               onClick={handleContinueToDashboard}
               className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 text-white py-4 rounded-2xl hover:from-emerald-700 hover:to-blue-700 transition-all font-bold text-lg"
             >
-              {language === 'sw' ? 'Nenda Dashibodi' : language === 'fr' ? 'Aller au Tableau de Bord' : 'Go to Dashboard'}
+              {t('register.go_dashboard')}
             </button>
             
             <p className="text-sm text-gray-500">
-              {language === 'sw' 
-                ? 'Hifadhi QR code yako kwa usalama. Utaitumia kuingia mara nyingine.'
-                : language === 'fr'
-                ? 'Gardez votre code QR en sécurité. Vous l\'utiliserez pour vous connecter à nouveau.'
-                : 'Keep your QR code safe. You\'ll use it to login again.'
-              }
+              {t('register.save_qr')}
             </p>
           </div>
         </motion.div>
@@ -369,23 +372,25 @@ export const RegistrationPage: React.FC = () => {
               />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">ParaBoda</h1>
+              <h1 className="text-4xl font-bold text-gray-900">{t('landing.title')}</h1>
               <p className="text-emerald-600 font-bold text-xl">
-                {language === 'sw' ? 'Afya Pamoja' : language === 'fr' ? 'Santé Ensemble' : 'Health Together'}
+                {t('landing.subtitle')}
               </p>
             </div>
           </div>
           
           {/* Language Selector */}
           <div className="flex justify-center mb-6">
-            <LanguageSelector />
+            <LanguageSelector position="inline" />
           </div>
           
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {language === 'sw' ? 'Jiunge na Mfumo wa Afya wa ParaBoda' : language === 'fr' ? 'Rejoignez le Système de Santé ParaBoda' : 'Join the ParaBoda Health System'}
+            {t('auth.register_title')}
           </h2>
           <p className="text-gray-600">
-            {language === 'sw' ? 'Unda akaunti yako kuanza kupata huduma' : language === 'fr' ? 'Créez votre compte pour commencer à accéder aux services' : 'Create your account to start accessing services'}
+            {language === 'sw' 
+              ? 'Unda akaunti yako kuanza kupata huduma'
+              : 'Create your account to start accessing services'}
           </p>
         </div>
 
@@ -416,28 +421,28 @@ export const RegistrationPage: React.FC = () => {
           {step === 1 && (
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-6">
-                {language === 'sw' ? 'Taarifa za Kibinafsi' : language === 'fr' ? 'Informations Personnelles' : 'Personal Information'}
+                {t('register.personal_info')}
               </h3>
               
               <div className="space-y-6">
                 {/* Full Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Jina Kamili' : language === 'fr' ? 'Nom Complet' : 'Full Name'} *
+                    {t('register.full_name')} *
                   </label>
                   <input
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder={language === 'sw' ? 'Ingiza jina lako kamili' : language === 'fr' ? 'Entrez votre nom complet' : 'Enter your full name'}
+                    placeholder={language === 'sw' ? 'Ingiza jina lako kamili' : 'Enter your full name'}
                   />
                 </div>
 
                 {/* Date of Birth */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Tarehe ya Kuzaliwa' : language === 'fr' ? 'Date de Naissance' : 'Date of Birth'} *
+                    {t('register.date_of_birth')} *
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -451,20 +456,24 @@ export const RegistrationPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Country */}
+                {/* Country Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Nchi' : language === 'fr' ? 'Pays' : 'Country'} *
+                    {t('register.country')} *
                   </label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <select
                       value={formData.country}
-                      onChange={(e) => handleInputChange('country', e.target.value)}
+                      onChange={(e) => {
+                        handleInputChange('country', e.target.value);
+                        handleInputChange('administrativeUnits', []); // Reset administrative units
+                        handleInputChange('administrativePath', []);
+                      }}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
-                      {eastAfricanCountries.map((country) => (
-                        <option key={country.code} value={country.name}>
+                      {countries.map((country) => (
+                        <option key={country.code} value={country.code}>
                           {country.flag} {country.name}
                         </option>
                       ))}
@@ -472,64 +481,37 @@ export const RegistrationPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* County/Region */}
+                {/* Administrative Hierarchy */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Kaunti/Mkoa' : language === 'fr' ? 'Comté/Région' : 'County/Region'} *
+                    {t('register.administrative_unit')} *
                   </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <select
-                      value={formData.county}
-                      onChange={(e) => handleInputChange('county', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    >
-                      <option value="">
-                        {language === 'sw' ? 'Chagua kaunti/mkoa' : language === 'fr' ? 'Sélectionnez le comté/région' : 'Select county/region'}
-                      </option>
-                      {formData.country === 'Kenya' ? (
-                        kenyanCounties.map((county) => (
-                          <option key={county} value={county}>{county}</option>
-                        ))
-                      ) : (
-                        <option value="Other">{language === 'sw' ? 'Nyingine' : language === 'fr' ? 'Autre' : 'Other'}</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Sub-County */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Kaunti Ndogo/Wilaya' : language === 'fr' ? 'Sous-Comté/District' : 'Sub-County/District'} *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.subCounty}
-                    onChange={(e) => handleInputChange('subCounty', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder={language === 'sw' ? 'Ingiza kaunti ndogo/wilaya' : language === 'fr' ? 'Entrez le sous-comté/district' : 'Enter sub-county/district'}
+                  <GovernanceSelector
+                    selectedCountry={formData.country}
+                    selectedUnits={formData.administrativeUnits}
+                    onSelectionChange={handleGovernanceChange}
+                    required={true}
                   />
                 </div>
 
                 {/* Village */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === 'sw' ? 'Kijiji/Mtaa' : language === 'fr' ? 'Village/Quartier' : 'Village/Neighborhood'} *
+                    {t('register.village')} *
                   </label>
                   <input
                     type="text"
                     value={formData.village}
                     onChange={(e) => handleInputChange('village', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder={language === 'sw' ? 'Ingiza kijiji/mtaa wako' : language === 'fr' ? 'Entrez votre village/quartier' : 'Enter your village/neighborhood'}
+                    placeholder={t('admin.enter_village')}
                   />
                 </div>
 
                 {/* Role Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-4">
-                    {language === 'sw' ? 'Chagua Jukumu Lako' : language === 'fr' ? 'Sélectionnez Votre Rôle' : 'Select Your Role'} *
+                    {t('register.select_role')} *
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {roles.map((role) => (
@@ -559,8 +541,9 @@ export const RegistrationPage: React.FC = () => {
               </div>
 
               {error && (
-                <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-                  {error}
+                <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center space-x-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -570,14 +553,15 @@ export const RegistrationPage: React.FC = () => {
                   className="flex items-center space-x-2 px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>{language === 'sw' ? 'Rudi Kuingia' : language === 'fr' ? 'Retour à la Connexion' : 'Back to Login'}</span>
+                  <span>{language === 'sw' ? 'Rudi Kuingia' : 'Back to Login'}</span>
                 </Link>
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-emerald-700 hover:to-blue-700 transition-all font-semibold"
+                  className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-emerald-700 hover:to-blue-700 transition-all font-semibold flex items-center space-x-2"
                 >
-                  {language === 'sw' ? 'Hatua Ijayo' : language === 'fr' ? 'Étape Suivante' : 'Next Step'}
+                  <span>{t('register.next_step')}</span>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -587,13 +571,13 @@ export const RegistrationPage: React.FC = () => {
           {step === 2 && (
             <form onSubmit={handleSubmit}>
               <h3 className="text-xl font-bold text-gray-900 mb-6">
-                {language === 'sw' ? 'Mpangilio wa Uthibitisho' : language === 'fr' ? 'Configuration d\'Authentification' : 'Authentication Setup'}
+                {t('register.auth_setup')}
               </h3>
               
               {/* Registration Method Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-4">
-                  {language === 'sw' ? 'Chagua Njia ya Usajili' : language === 'fr' ? 'Choisissez la Méthode d\'Inscription' : 'Choose Registration Method'}
+                  {t('register.registration_method')}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
@@ -609,7 +593,7 @@ export const RegistrationPage: React.FC = () => {
                       registrationMethod === 'phone' ? 'text-emerald-600' : 'text-gray-400'
                     }`} />
                     <h4 className="font-semibold text-gray-900">
-                      {language === 'sw' ? 'Simu + PIN' : language === 'fr' ? 'Téléphone + PIN' : 'Phone + PIN'}
+                      {t('register.phone_pin')}
                     </h4>
                   </button>
                   
@@ -626,7 +610,7 @@ export const RegistrationPage: React.FC = () => {
                       registrationMethod === 'email' ? 'text-emerald-600' : 'text-gray-400'
                     }`} />
                     <h4 className="font-semibold text-gray-900">
-                      {language === 'sw' ? 'Barua pepe + Nenosiri' : language === 'fr' ? 'Email + Mot de Passe' : 'Email + Password'}
+                      {t('register.email_password')}
                     </h4>
                   </button>
                 </div>
@@ -638,7 +622,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* Phone Number */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Nambari ya Simu' : language === 'fr' ? 'Numéro de Téléphone' : 'Phone Number'} *
+                        {t('form.phone')} *
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -655,7 +639,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* PIN */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Tengeneza PIN ya Nambari 4' : language === 'fr' ? 'Créer un PIN à 4 Chiffres' : 'Create 4-Digit PIN'} *
+                        {t('register.create_pin')} *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -680,7 +664,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* Confirm PIN */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Thibitisha PIN' : language === 'fr' ? 'Confirmer le PIN' : 'Confirm PIN'} *
+                        {t('register.confirm_pin')} *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -700,7 +684,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* Email */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Anwani ya Barua Pepe' : language === 'fr' ? 'Adresse Email' : 'Email Address'} *
+                        {t('form.email')} *
                       </label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -717,7 +701,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* Password */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Nenosiri' : language === 'fr' ? 'Mot de Passe' : 'Password'} *
+                        {t('form.password', { defaultValue: 'Password' })} *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -741,7 +725,7 @@ export const RegistrationPage: React.FC = () => {
                     {/* Confirm Password */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'sw' ? 'Thibitisha Nenosiri' : language === 'fr' ? 'Confirmer le Mot de Passe' : 'Confirm Password'} *
+                        {language === 'sw' ? 'Thibitisha Nenosiri' : 'Confirm Password'} *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -767,21 +751,22 @@ export const RegistrationPage: React.FC = () => {
                     className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                   />
                   <label htmlFor="terms" className="text-sm text-gray-600">
-                    {language === 'sw' ? 'Nakubali' : language === 'fr' ? 'J\'accepte' : 'I agree to the'}{' '}
+                    {language === 'sw' ? 'Nakubali' : 'I agree to the'}{' '}
                     <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">
-                      {language === 'sw' ? 'Masharti na Hali' : language === 'fr' ? 'Termes et Conditions' : 'Terms and Conditions'}
+                      {t('register.terms_conditions')}
                     </a>{' '}
-                    {language === 'sw' ? 'na' : language === 'fr' ? 'et' : 'and'}{' '}
+                    {language === 'sw' ? 'na' : 'and'}{' '}
                     <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">
-                      {language === 'sw' ? 'Sera ya Faragha' : language === 'fr' ? 'Politique de Confidentialité' : 'Privacy Policy'}
+                      {t('register.privacy_policy')}
                     </a>
                   </label>
                 </div>
               </div>
 
               {error && (
-                <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-                  {error}
+                <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center space-x-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -792,17 +777,21 @@ export const RegistrationPage: React.FC = () => {
                   className="flex items-center space-x-2 px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>{language === 'sw' ? 'Rudi' : language === 'fr' ? 'Retour' : 'Back'}</span>
+                  <span>{t('action.back')}</span>
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-emerald-700 hover:to-blue-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-emerald-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-emerald-700 hover:to-blue-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
-                  {isLoading 
-                    ? (language === 'sw' ? 'Inaunda Akaunti...' : language === 'fr' ? 'Création du Compte...' : 'Creating Account...') 
-                    : (language === 'sw' ? 'Unda Akaunti' : language === 'fr' ? 'Créer un Compte' : 'Create Account')
-                  }
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>{language === 'sw' ? 'Inaunda Akaunti...' : 'Creating Account...'}</span>
+                    </>
+                  ) : (
+                    <span>{t('register.create_account')}</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -812,9 +801,9 @@ export const RegistrationPage: React.FC = () => {
         {/* Login Link */}
         <div className="text-center mt-6">
           <p className="text-gray-600">
-            {language === 'sw' ? 'Tayari una akaunti? ' : language === 'fr' ? 'Vous avez déjà un compte? ' : 'Already have an account? '}
+            {language === 'sw' ? 'Tayari una akaunti? ' : 'Already have an account? '}
             <Link to="/auth" className="text-emerald-600 hover:text-emerald-700 font-medium">
-              {language === 'sw' ? 'Ingia hapa' : language === 'fr' ? 'Connectez-vous ici' : 'Login here'}
+              {language === 'sw' ? 'Ingia hapa' : 'Login here'}
             </Link>
           </p>
         </div>

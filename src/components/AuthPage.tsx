@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useVoiceCommand } from '../contexts/VoiceCommandContext';
@@ -22,7 +22,9 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
-  AlertCircle
+  AlertTriangle,
+  ArrowLeft,
+  Zap
 } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
@@ -35,54 +37,65 @@ export const AuthPage: React.FC = () => {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'form' | 'qr' | 'quick'>('quick');
   const [qrLoginSuccess, setQrLoginSuccess] = useState(false);
+  const [isEmergencyMode, setIsEmergencyMode] = useState(false);
   
   const { login, setPreviewUser } = useAuth();
   const { isListening, startListening, isSupported } = useVoiceCommand();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check for emergency mode
+  useEffect(() => {
+    const emergency = searchParams.get('emergency');
+    if (emergency === 'true') {
+      setIsEmergencyMode(true);
+      setLoginMethod('quick');
+    }
+  }, [searchParams]);
 
   const roles = [
     {
       id: 'community' as UserRole,
-      name: language === 'sw' ? 'Mwanajamii' : 'Community',
+      name: t('role.caregiver'),
       emoji: '👤',
-      description: language === 'sw' ? 'Huduma za afya, usafiri, zawadi' : 'Health services, transport, rewards',
+      description: t('role.caregiver_desc'),
       icon: User,
       color: 'emerald',
       testEmail: 'community@test.com'
     },
     {
       id: 'rider' as UserRole,
-      name: language === 'sw' ? 'Msafiri' : 'Rider',
+      name: t('role.rider'),
       emoji: '🏍️',
-      description: language === 'sw' ? 'Safari, dharura, miradi ya vijana' : 'Rides, emergencies, youth programs',
+      description: t('role.rider_desc'),
       icon: Bike,
       color: 'blue',
       testEmail: 'rider@test.com'
     },
     {
       id: 'chv' as UserRole,
-      name: language === 'sw' ? 'Mjumbe wa Afya' : 'CHV',
+      name: t('role.chv'),
       emoji: '❤️',
-      description: language === 'sw' ? 'Kaya, idhini, tahadhari za afya' : 'Households, approvals, health alerts',
+      description: t('role.chv_desc'),
       icon: Heart,
       color: 'purple',
       testEmail: 'chv@test.com'
     },
     {
       id: 'health_worker' as UserRole,
-      name: language === 'sw' ? 'Mfanyakazi wa Afya' : 'Health Worker',
+      name: t('role.health_worker'),
       emoji: '🩺',
-      description: language === 'sw' ? 'Wagonjwa, chanjo, skani QR' : 'Patients, vaccines, QR scanner',
+      description: t('role.health_worker_desc'),
       icon: Stethoscope,
       color: 'indigo',
       testEmail: 'health@test.com'
     },
     {
       id: 'admin' as UserRole,
-      name: language === 'sw' ? 'Msimamizi' : 'Admin',
+      name: t('role.admin'),
       emoji: '⚙️',
-      description: language === 'sw' ? 'Usimamizi wa mfumo' : 'System management',
+      description: t('role.admin_desc'),
       icon: Shield,
       color: 'gray',
       testEmail: 'admin@test.com'
@@ -123,7 +136,13 @@ export const AuthPage: React.FC = () => {
       health_worker: '/health-worker',
       admin: '/admin'
     };
-    navigate(roleRoutes[role]);
+    
+    // For emergency mode, go directly to emergency request
+    if (isEmergencyMode && role === 'community') {
+      navigate('/community?emergency=true');
+    } else {
+      navigate(roleRoutes[role]);
+    }
   };
 
   const fillTestCredentials = (role: UserRole) => {
@@ -139,7 +158,7 @@ export const AuthPage: React.FC = () => {
   const handleQRScan = (qrData: string) => {
     try {
       const data = JSON.parse(qrData);
-      if (data.type === 'paraboda_login' && data.userId && data.role) {
+      if (data.type === 'paraboda_user' && data.userId && data.role) {
         setQrLoginSuccess(true);
         setShowQRScanner(false);
         
@@ -153,7 +172,12 @@ export const AuthPage: React.FC = () => {
             health_worker: '/health-worker',
             admin: '/admin'
           };
-          navigate(roleRoutes[data.role]);
+          
+          if (isEmergencyMode && data.role === 'community') {
+            navigate('/community?emergency=true');
+          } else {
+            navigate(roleRoutes[data.role]);
+          }
         }, 1500);
       } else {
         setError(language === 'sw' ? 'QR code si sahihi' : 'Invalid QR code');
@@ -172,6 +196,30 @@ export const AuthPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-6xl"
       >
+        {/* Emergency Mode Banner */}
+        {isEmergencyMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-600 text-white p-4 rounded-2xl mb-6 text-center"
+          >
+            <div className="flex items-center justify-center space-x-3">
+              <AlertTriangle className="w-6 h-6 animate-pulse" />
+              <div>
+                <h3 className="font-bold text-lg">
+                  {language === 'sw' ? 'Hali ya Dharura' : 'Emergency Mode'}
+                </h3>
+                <p className="text-sm">
+                  {language === 'sw' 
+                    ? 'Ufikiaji wa haraka wa huduma za dharura'
+                    : 'Quick access to emergency services'
+                  }
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-4 mb-6">
             <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-2xl border-4 border-yellow-400">
@@ -182,21 +230,21 @@ export const AuthPage: React.FC = () => {
               />
             </div>
             <div>
-              <h1 className="text-5xl font-black text-gray-900">ParaBoda</h1>
+              <h1 className="text-5xl font-black text-gray-900">{t('landing.title')}</h1>
               <p className="text-green-600 font-black text-2xl">
-                {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
+                {t('landing.subtitle')}
               </p>
             </div>
           </div>
           
           {/* Language Selector */}
           <div className="flex justify-center mb-6">
-            <LanguageSelector />
+            <LanguageSelector position="inline" />
           </div>
           
           <div className="text-6xl mb-4">🔑</div>
           <p className="text-gray-600 text-2xl font-bold">
-            {language === 'sw' ? 'Chagua njia ya kuingia' : 'Choose your login method'}
+            {t('auth.login_methods')}
           </p>
         </div>
 
@@ -213,7 +261,7 @@ export const AuthPage: React.FC = () => {
                 }`}
               >
                 <span className="text-3xl">⚡</span>
-                <span>{language === 'sw' ? 'Haraka' : 'Quick'}</span>
+                <span>{t('auth.quick_login')}</span>
               </button>
               
               <button
@@ -225,7 +273,7 @@ export const AuthPage: React.FC = () => {
                 }`}
               >
                 <span className="text-3xl">📱</span>
-                <span>{language === 'sw' ? 'QR Code' : 'QR Code'}</span>
+                <span>{t('auth.qr_login')}</span>
               </button>
               
               <button
@@ -237,7 +285,7 @@ export const AuthPage: React.FC = () => {
                 }`}
               >
                 <span className="text-3xl">📝</span>
-                <span>{language === 'sw' ? 'Fomu' : 'Form'}</span>
+                <span>{t('auth.form_login')}</span>
               </button>
             </div>
           </div>
@@ -260,7 +308,7 @@ export const AuthPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* QR Login Method */}
+        {/* Quick Access Method */}
         {loginMethod === 'quick' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -269,21 +317,40 @@ export const AuthPage: React.FC = () => {
           >
             <div className="text-center mb-6">
               <h3 className="text-3xl font-black text-gray-900 mb-2">
-                {language === 'sw' ? '📱 Kuingia kwa QR Code' : '📱 QR Code Login'}
+                {isEmergencyMode ? '🚨' : '⚡'} {isEmergencyMode ? (language === 'sw' ? 'Ufikiaji wa Dharura' : 'Emergency Access') : (language === 'sw' ? 'Ufikiaji wa Haraka' : 'Quick Access')}
               </h3>
               <p className="text-gray-600 font-bold text-lg">
-                {language === 'sw' ? 'Skani QR code yako kuingia moja kwa moja' : 'Scan your QR code to login instantly'}
+                {isEmergencyMode 
+                  ? (language === 'sw' ? 'Chagua jukumu lako kwa ufikiaji wa haraka wa dharura' : 'Select your role for quick emergency access')
+                  : (language === 'sw' ? 'Chagua jukumu lako kuingia moja kwa moja' : 'Select your role to access directly')
+                }
               </p>
             </div>
 
-            <div className="flex justify-center">
-              <button
-                onClick={() => setLoginMethod('qr')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-6 px-12 rounded-3xl hover:from-blue-700 hover:to-purple-700 transition-all font-black text-xl shadow-2xl flex items-center space-x-4 transform hover:scale-105"
-              >
-                <QrCode className="w-8 h-8" />
-                <span>{language === 'sw' ? 'SKANI QR CODE' : 'SCAN QR CODE'}</span>
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              {roles.map((role) => (
+                <motion.button
+                  key={role.id}
+                  onClick={() => handleQuickLogin(role.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-6 rounded-3xl border-4 transition-all text-center shadow-2xl ${
+                    isEmergencyMode && role.id === 'community'
+                      ? 'border-red-500 bg-red-50 animate-pulse'
+                      : `border-${role.color}-500 bg-${role.color}-50 hover:border-${role.color}-600 transform hover:scale-105`
+                  }`}
+                >
+                  <div className="text-6xl mb-4">{role.emoji}</div>
+                  <role.icon className={`w-8 h-8 mb-4 mx-auto text-${role.color}-600`} />
+                  <h3 className="font-black text-gray-900 text-xl mb-2">{role.name}</h3>
+                  <p className="text-gray-600 text-sm font-bold">{role.description}</p>
+                  {isEmergencyMode && role.id === 'community' && (
+                    <div className="mt-3 bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold">
+                      {language === 'sw' ? 'DHARURA' : 'EMERGENCY'}
+                    </div>
+                  )}
+                </motion.button>
+              ))}
             </div>
           </motion.div>
         )}
@@ -298,7 +365,7 @@ export const AuthPage: React.FC = () => {
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">📱</div>
               <h2 className="text-3xl font-black text-gray-900 mb-4">
-                {language === 'sw' ? 'Kuingia kwa QR Code' : 'QR Code Login'}
+                {t('auth.qr_login')}
               </h2>
               <p className="text-gray-600 font-bold text-lg">
                 {language === 'sw' ? 'Skani QR code yako ya kuingia' : 'Scan your login QR code'}
@@ -311,7 +378,7 @@ export const AuthPage: React.FC = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-6 rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all font-black text-xl shadow-2xl flex items-center justify-center space-x-3 lg:space-x-4 transform hover:scale-105 animate-pulse-african"
               >
                 <QrCode className="w-8 h-8" />
-                <span>{language === 'sw' ? 'FUNGUA KAMERA' : 'OPEN CAMERA'}</span>
+                <span>{t('auth.open_camera')}</span>
               </button>
 
               <div className="text-center">
@@ -332,13 +399,10 @@ export const AuthPage: React.FC = () => {
               <div className="text-center">
                 <div className="text-3xl mb-2">💡</div>
                 <p className="text-blue-800 font-black mb-2">
-                  {language === 'sw' ? 'Hakuna QR Code?' : "Don't have a QR Code?"}
+                  {t('auth.no_qr')}
                 </p>
                 <p className="text-blue-700 font-bold text-sm">
-                  {language === 'sw' 
-                    ? 'Tumia "Onyesho" kwa ajili ya majaribio'
-                    : 'Use "Demo" button for testing'
-                  }
+                  {t('auth.use_demo')}
                 </p>
               </div>
             </div>
@@ -382,23 +446,24 @@ export const AuthPage: React.FC = () => {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">👋</div>
                 <h2 className="text-3xl font-black text-gray-900">
-                  {language === 'sw' ? 'Karibu Tena' : 'Welcome Back'}
+                  {t('auth.welcome_back')}
                 </h2>
                 <p className="text-gray-600 font-bold text-lg">
-                  {language === 'sw' ? 'Karibu tena - Ingia kuendelea' : 'Karibu tena - Login to continue'}
+                  {language === 'sw' ? 'Karibu tena - Ingia kuendelea' : 'Welcome back - Login to continue'}
                 </p>
               </div>
 
               {error && (
-                <div className="bg-red-50 border-4 border-red-200 text-red-600 px-6 py-4 rounded-2xl mb-6 text-center font-bold">
-                  {error}
+                <div className="bg-red-50 border-4 border-red-200 text-red-600 px-6 py-4 rounded-2xl mb-6 text-center font-bold flex items-center space-x-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>{error}</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-3">
-                    📧 {language === 'sw' ? 'Barua Pepe' : 'Email'}
+                    📧 {t('form.email')}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
@@ -415,7 +480,7 @@ export const AuthPage: React.FC = () => {
 
                 <div>
                   <label className="block text-lg font-black text-gray-700 mb-3">
-                    🔒 {language === 'sw' ? 'Nenosiri' : 'Password'}
+                    🔒 {t('form.password', { defaultValue: 'Password' })}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
@@ -462,10 +527,22 @@ export const AuthPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 text-white py-4 rounded-2xl hover:from-emerald-700 hover:to-blue-700 transition-all font-black text-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center justify-center space-x-3"
+                  className={`w-full py-4 rounded-2xl transition-all font-black text-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center justify-center space-x-3 ${
+                    isEmergencyMode 
+                      ? 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'
+                      : 'bg-gradient-to-r from-emerald-600 to-blue-600 text-white hover:from-emerald-700 hover:to-blue-700'
+                  }`}
                 >
-                  <span className="text-2xl">🚀</span>
-                  <span>{isLoading ? (language === 'sw' ? 'Inaingia...' : 'Logging in...') : (language === 'sw' ? 'INGIA' : 'LOGIN')}</span>
+                  <span className="text-2xl">{isEmergencyMode ? '🚨' : '🚀'}</span>
+                  <span>
+                    {isLoading 
+                      ? (language === 'sw' ? 'Inaingia...' : 'Logging in...') 
+                      : (isEmergencyMode 
+                          ? (language === 'sw' ? 'INGIA DHARURA' : 'EMERGENCY LOGIN')
+                          : (language === 'sw' ? 'INGIA' : 'LOGIN')
+                        )
+                    }
+                  </span>
                 </button>
               </form>
 
@@ -473,7 +550,7 @@ export const AuthPage: React.FC = () => {
                 <div className="text-center">
                   <div className="text-3xl mb-2">💡</div>
                   <p className="text-yellow-800 font-black mb-2">
-                    {language === 'sw' ? 'Taarifa za Onyesho:' : 'Demo Credentials:'}
+                    {t('auth.demo_credentials')}:
                   </p>
                   <p className="text-yellow-700 font-bold text-sm">
                     {language === 'sw' 
@@ -486,6 +563,17 @@ export const AuthPage: React.FC = () => {
             </motion.div>
           </>
         )}
+
+        {/* Back to Landing Page */}
+        <div className="text-center mt-8">
+          <Link
+            to="/"
+            className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors font-bold"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{language === 'sw' ? 'Rudi Nyumbani' : 'Back to Home'}</span>
+          </Link>
+        </div>
 
         {/* Registration Link */}
         <div className="text-center mt-8">

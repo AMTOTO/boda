@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Modal } from './Modal';
+import { AutoPopulateForm } from './AutoPopulateForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
@@ -50,11 +51,12 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [distanceInKm, setDistanceInKm] = useState<number>(1);
+  const [distanceInKm, setDistanceInKm] = useState<number>(5);
+  const [autoPopulatedData, setAutoPopulatedData] = useState<any>(null);
 
   // Cost calculation with new pricing tiers
   const calculateTotalCost = () => {
-    const distance = Math.max(1, distanceInKm || 1);
+    const distance = Math.max(1, distanceInKm || 5);
     if (distance <= 3) return 50;
     if (distance <= 5) return 100;
     return 100 + ((distance - 5) * 40); // 100 for first 5km + 40 per additional km
@@ -164,6 +166,13 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
     }
   };
 
+  // Handle auto-populated data
+  const handleDataPopulated = (data: any) => {
+    setAutoPopulatedData(data);
+    setPatientName(data.name);
+    setPickupLocation(data.location);
+  };
+
   // Auto-populate user details on mount
   useEffect(() => {
     if (user) {
@@ -186,37 +195,43 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
     setIsSubmitting(true);
     
-    // Simulate request processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const service = services.find(s => s.id === selectedService);
-    const requestData = {
-      serviceId: selectedService,
-      serviceName: service?.name,
-      urgency,
-      patientName,
-      patientAge,
-      patientGender,
-      symptoms,
-      pickupLocation,
-      destination,
-      preferredTime,
-      additionalNotes,
-      estimatedCost: service?.estimatedCost,
-      requestedBy: user?.name,
-      timestamp: new Date().toISOString(),
-      gpsLocation: currentLocation
-    };
-    
-    onRequest(requestData);
-    setShowSuccess(true);
-    
-    setTimeout(() => {
+    try {
+      // Simulate request processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const service = services.find(s => s.id === selectedService);
+      const requestData = {
+        serviceId: selectedService,
+        serviceName: service?.name,
+        urgency,
+        patientName,
+        patientAge,
+        patientGender,
+        symptoms,
+        pickupLocation,
+        destination,
+        preferredTime,
+        additionalNotes,
+        estimatedCost: service?.estimatedCost,
+        requestedBy: user?.name,
+        timestamp: new Date().toISOString(),
+        gpsLocation: currentLocation,
+        distanceKm: distanceInKm
+      };
+      
+      onRequest(requestData);
+      setShowSuccess(true);
+      
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setShowSuccess(false);
+        onClose();
+        resetForm();
+      }, 2000);
+    } catch (error) {
+      console.error('Service request error:', error);
       setIsSubmitting(false);
-      setShowSuccess(false);
-      onClose();
-      resetForm();
-    }, 2000);
+    }
   };
 
   const resetForm = () => {
@@ -250,6 +265,12 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       size="xl"
     >
       <div className="space-y-6">
+        {/* Auto-populate form */}
+        <AutoPopulateForm
+          onDataPopulated={handleDataPopulated}
+          showPreview={true}
+        />
+
         {/* Success Message */}
         {showSuccess && (
           <motion.div
@@ -448,7 +469,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                   <input
                     type="number"
                     value={distanceInKm || ''}
-                    onChange={(e) => setDistanceInKm(parseFloat(e.target.value) || 1)}
+                    onChange={(e) => setDistanceInKm(parseFloat(e.target.value) || 5)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={language === 'sw' ? 'Ingiza umbali kwa kilomita' : 'Enter distance in kilometers'}
                     min="1"
@@ -468,7 +489,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                   <div className="text-sm text-blue-800">
                     <div className="flex justify-between items-center mb-1">
                       <span>{language === 'sw' ? 'Umbali:' : 'Distance:'}</span>
-                      <span className="font-medium">{distanceInKm || 1} km</span>
+                      <span className="font-medium">{distanceInKm || 5} km</span>
                     </div>
                     <div className="flex justify-between items-center mb-1">
                       <span>{language === 'sw' ? 'Viwango vya bei:' : 'Pricing tiers:'}</span>
@@ -565,7 +586,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !selectedService || !patientName || (selectedService.includes('transport') && (!distanceInKm || distanceInKm < 1))}
+            disabled={isSubmitting || !selectedService || !patientName}
             className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

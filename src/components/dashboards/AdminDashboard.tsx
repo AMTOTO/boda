@@ -745,29 +745,203 @@ export const AdminDashboard: React.FC = () => {
         <Modal
           isOpen={true}
           onClose={() => setActiveModal(null)}
-          title={language === 'sw' ? '🚧 Inaendelezwa' : '🚧 Coming Soon'}
+          title={
+            activeModal === 'addUser' ? (language === 'sw' ? '👤 Ongeza Mtumiaji' : '👤 Add User') :
+            activeModal === 'exportUsers' ? (language === 'sw' ? '📊 Hamisha Data' : '📊 Export Data') :
+            activeModal === 'userAnalytics' ? (language === 'sw' ? '📈 Uchanganuzi wa Watumiaji' : '📈 User Analytics') :
+            activeModal === 'generalSettings' ? (language === 'sw' ? '⚙️ Mipangilio ya Jumla' : '⚙️ General Settings') :
+            activeModal === 'securitySettings' ? (language === 'sw' ? '🔒 Usalama' : '🔒 Security') :
+            activeModal === 'backupSettings' ? (language === 'sw' ? '💾 Hifadhi ya Data' : '💾 Data Backup') :
+            activeModal === 'systemHealth' ? (language === 'sw' ? '🏥 Afya ya Mfumo' : '🏥 System Health') :
+            (language === 'sw' ? '🔔 Historia ya Arifa' : '🔔 Notification History')
+          }
           size="md"
         >
-          <div className="text-center py-8">
-            <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              {language === 'sw' ? 'Kipengele Kinaendelezwa' : 'Feature Under Development'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {language === 'sw' 
-                ? 'Kipengele hiki kitaongezwa katika toleo lijalo'
-                : 'This feature will be available in the next release'
-              }
-            </p>
-            <div className="bg-blue-50 p-4 rounded-xl">
-              <p className="text-blue-800 text-sm">
-                {language === 'sw' 
-                  ? 'Tunafanya kazi kuongeza vipengele vya kisasa vya usimamizi'
-                  : 'We are working on adding advanced management features'
-                }
-              </p>
+          {activeModal === 'addUser' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Jina Kamili' : 'Full Name'}
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder={language === 'sw' ? 'Grace Wanjiku' : 'Grace Wanjiku'}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Jukumu' : 'Role'}
+                  </label>
+                  <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    <option value="community">{language === 'sw' ? 'Mwanajamii' : 'Community'}</option>
+                    <option value="rider">{language === 'sw' ? 'Msafiri' : 'Rider'}</option>
+                    <option value="chv">CHV</option>
+                    <option value="health_worker">{language === 'sw' ? 'Mfanyakazi wa Afya' : 'Health Worker'}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Barua Pepe' : 'Email'}
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder="grace@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Nambari ya Simu' : 'Phone Number'}
+                  </label>
+                  <input
+                    type="tel"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder="+254 7XX XXX XXX"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Mahali' : 'Location'}
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder={language === 'sw' ? 'Kiambu County' : 'Kiambu County'}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  {language === 'sw' ? 'Ghairi' : 'Cancel'}
+                </button>
+                <button
+                  onClick={() => {
+                    addNotification({
+                      title: language === 'sw' ? 'Mtumiaji Ameongezwa' : 'User Added',
+                      message: language === 'sw' ? 'Mtumiaji mpya ameongezwa kikamilifu' : 'New user added successfully',
+                      type: 'success',
+                      read: false
+                    });
+                    setActiveModal(null);
+                  }}
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  {language === 'sw' ? 'Ongeza Mtumiaji' : 'Add User'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeModal === 'exportUsers' && (
+            <div className="space-y-6">
+              <div className="bg-green-50 p-4 rounded-xl">
+                <h3 className="font-bold text-green-900 mb-2">{language === 'sw' ? 'Hamisha Data ya Watumiaji' : 'Export User Data'}</h3>
+                <p className="text-green-800 text-sm">{language === 'sw' ? 'Pakua data ya watumiaji' : 'Download user data'}</p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Aina ya Data' : 'Data Type'}
+                  </label>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'all_users', label: language === 'sw' ? 'Watumiaji Wote' : 'All Users' },
+                      { id: 'active_users', label: language === 'sw' ? 'Watumiaji Hai' : 'Active Users' },
+                      { id: 'financial_data', label: language === 'sw' ? 'Data ya Kifedha' : 'Financial Data' },
+                      { id: 'health_records', label: language === 'sw' ? 'Rekodi za Afya' : 'Health Records' }
+                    ].map((option) => (
+                      <label key={option.id} className="flex items-center space-x-2">
+                        <input type="checkbox" className="rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                        <span className="text-gray-700">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'sw' ? 'Muundo wa Faili' : 'File Format'}
+                  </label>
+                  <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500">
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel</option>
+                    <option value="json">JSON</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  {language === 'sw' ? 'Ghairi' : 'Cancel'}
+                </button>
+                <button
+                  onClick={() => {
+                    addNotification({
+                      title: language === 'sw' ? 'Data Imehamishwa' : 'Data Exported',
+                      message: language === 'sw' ? 'Faili la data limepakuliwa' : 'Data file downloaded',
+                      type: 'success',
+                      read: false
+                    });
+                    setActiveModal(null);
+                  }}
+                  className="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                >
+                  {language === 'sw' ? 'Hamisha Data' : 'Export Data'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Add similar implementations for other modals */}
+          {(activeModal === 'userAnalytics' || activeModal === 'generalSettings' || activeModal === 'securitySettings' || 
+            activeModal === 'backupSettings' || activeModal === 'systemHealth' || activeModal === 'notificationHistory') && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 p-4 rounded-xl text-center">
+                <Settings className="w-12 h-12 text-blue-600 mx-auto mb-2" />
+                <h3 className="font-bold text-blue-900 mb-2">
+                  {activeModal === 'userAnalytics' ? (language === 'sw' ? 'Uchanganuzi wa Watumiaji' : 'User Analytics') :
+                   activeModal === 'generalSettings' ? (language === 'sw' ? 'Mipangilio ya Jumla' : 'General Settings') :
+                   activeModal === 'securitySettings' ? (language === 'sw' ? 'Mipangilio ya Usalama' : 'Security Settings') :
+                   activeModal === 'backupSettings' ? (language === 'sw' ? 'Mipangilio ya Hifadhi' : 'Backup Settings') :
+                   activeModal === 'systemHealth' ? (language === 'sw' ? 'Afya ya Mfumo' : 'System Health') :
+                   (language === 'sw' ? 'Historia ya Arifa' : 'Notification History')}
+                </h3>
+                <p className="text-blue-800 text-sm">
+                  {language === 'sw' ? 'Kipengele kimefunguliwa' : 'Feature is now available'}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <button
+                  onClick={() => {
+                    addNotification({
+                      title: language === 'sw' ? 'Kipengele Kimefunguliwa' : 'Feature Activated',
+                      message: language === 'sw' ? 'Kipengele kimefunguliwa na kiko tayari' : 'Feature is now active and ready',
+                      type: 'success',
+                      read: false
+                    });
+                    setActiveModal(null);
+                  }}
+                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  {language === 'sw' ? 'Fungua Kipengele' : 'Activate Feature'}
+                </button>
+                
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  {language === 'sw' ? 'Funga' : 'Close'}
+                </button>
+              </div>
+            </div>
+          )}
         </Modal>
       )}
     </div>

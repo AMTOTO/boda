@@ -50,11 +50,19 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
         streamRef.current.getTracks().forEach(track => track.stop());
       }
 
+      // Check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(language === 'sw' 
+          ? 'Kamera haipatikani kwenye kifaa hiki'
+          : 'Camera not available on this device'
+        );
+      }
+
       const constraints = {
         video: {
           facingMode: facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
         }
       };
 
@@ -69,11 +77,33 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       setIsLoading(false);
     } catch (err) {
       console.error('Camera access error:', err);
-      setError(
-        language === 'sw'
+      
+      let errorMessage = '';
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          errorMessage = language === 'sw'
+            ? 'Ufikiaji wa kamera umekataliwa. Tafadhali ruhusu kamera katika mipangilio ya kivinjari.'
+            : 'Camera access denied. Please allow camera access in your browser settings.';
+        } else if (err.name === 'NotFoundError') {
+          errorMessage = language === 'sw'
+            ? 'Hakuna kamera iliyopatikana. Hakikisha kifaa chako kina kamera.'
+            : 'No camera found. Please ensure your device has a camera.';
+        } else if (err.name === 'NotReadableError') {
+          errorMessage = language === 'sw'
+            ? 'Kamera inatumika na programu nyingine. Funga programu zingine na ujaribu tena.'
+            : 'Camera is being used by another application. Close other apps and try again.';
+        } else {
+          errorMessage = language === 'sw'
+            ? 'Imeshindwa kupata ufikiaji wa kamera. Tafadhali ruhusu kamera.'
+            : 'Failed to access camera. Please allow camera access.';
+        }
+      } else {
+        errorMessage = language === 'sw'
           ? 'Imeshindwa kupata ufikiaji wa kamera. Tafadhali ruhusu kamera.'
-          : 'Failed to access camera. Please allow camera access.'
-      );
+          : 'Failed to access camera. Please allow camera access.';
+      }
+      
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

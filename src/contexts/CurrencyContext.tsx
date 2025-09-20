@@ -1,40 +1,48 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Currency = 'KSh' | 'USD' | 'EUR' | 'GBP' | 'ZAR' | 'UGX' | 'TZS';
+type Currency = 'KES' | 'UGX' | 'RWF' | 'CDF' | 'USD' | 'EUR';
 
 interface CurrencyContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
-  formatAmount: (amount: number) => string;
-  convertAmount: (amount: number, fromCurrency?: Currency) => number;
+  formatAmount: (amount: number, currencyOverride?: Currency) => string;
+  convertAmount: (amount: number, fromCurrency?: Currency, toCurrency?: Currency) => number;
   exchangeRates: Record<Currency, number>;
   currencies: Array<{
     code: Currency;
     name: string;
     symbol: string;
     flag: string;
+    country: string;
   }>;
+  getCountryCurrency: (countryCode: string) => Currency;
 }
 
 const currencies = [
-  { code: 'KSh' as Currency, name: 'Kenyan Shilling', symbol: 'KSh', flag: '🇰🇪' },
-  { code: 'USD' as Currency, name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
-  { code: 'EUR' as Currency, name: 'Euro', symbol: '€', flag: '🇪🇺' },
-  { code: 'GBP' as Currency, name: 'British Pound', symbol: '£', flag: '🇬🇧' },
-  { code: 'ZAR' as Currency, name: 'South African Rand', symbol: 'R', flag: '🇿🇦' },
-  { code: 'UGX' as Currency, name: 'Ugandan Shilling', symbol: 'UGX', flag: '🇺🇬' },
-  { code: 'TZS' as Currency, name: 'Tanzanian Shilling', symbol: 'TZS', flag: '🇹🇿' }
+  { code: 'KES' as Currency, name: 'Kenyan Shilling', symbol: 'KSh', flag: '🇰🇪', country: 'Kenya' },
+  { code: 'UGX' as Currency, name: 'Ugandan Shilling', symbol: 'UGX', flag: '🇺🇬', country: 'Uganda' },
+  { code: 'RWF' as Currency, name: 'Rwandan Franc', symbol: 'RWF', flag: '🇷🇼', country: 'Rwanda' },
+  { code: 'CDF' as Currency, name: 'Congolese Franc', symbol: 'CDF', flag: '🇨🇩', country: 'DRC' },
+  { code: 'USD' as Currency, name: 'US Dollar', symbol: '$', flag: '🇺🇸', country: 'International' },
+  { code: 'EUR' as Currency, name: 'Euro', symbol: '€', flag: '🇪🇺', country: 'International' }
 ];
 
-// Exchange rates relative to KSh (1 KSh = x currency)
+// Exchange rates relative to KES (1 KES = x currency)
 const exchangeRates: Record<Currency, number> = {
-  'KSh': 1,
-  'USD': 0.0067, // 1 KSh = 0.0067 USD (approximately 150 KSh = 1 USD)
-  'EUR': 0.0061, // 1 KSh = 0.0061 EUR
-  'GBP': 0.0053, // 1 KSh = 0.0053 GBP
-  'ZAR': 0.12,   // 1 KSh = 0.12 ZAR
-  'UGX': 24.5,   // 1 KSh = 24.5 UGX
-  'TZS': 16.8    // 1 KSh = 16.8 TZS
+  'KES': 1,
+  'UGX': 26.5,   // 1 KES = 26.5 UGX
+  'RWF': 9.2,    // 1 KES = 9.2 RWF
+  'CDF': 19.8,   // 1 KES = 19.8 CDF
+  'USD': 0.0067, // 1 KES = 0.0067 USD (approximately 150 KES = 1 USD)
+  'EUR': 0.0061  // 1 KES = 0.0061 EUR
+};
+
+// Country to currency mapping
+const countryCurrencyMap: Record<string, Currency> = {
+  'KE': 'KES',
+  'UG': 'UGX',
+  'RW': 'RWF',
+  'CD': 'CDF'
 };
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -48,60 +56,94 @@ export const useCurrency = () => {
 };
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currency, setCurrency] = useState<Currency>('KSh');
+  const [currency, setCurrency] = useState<Currency>('KES');
 
   useEffect(() => {
-    // Try to get currency from localStorage
-    try {
-      const savedCurrency = localStorage.getItem('paraboda_currency') as Currency;
-      if (savedCurrency && currencies.find(c => c.code === savedCurrency)) {
-        setCurrency(savedCurrency);
+    // Initialize currency from user profile or localStorage
+    const initializeCurrency = () => {
+      try {
+        // First check user profile for country-based currency
+        const userData = localStorage.getItem('paraboda_user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user.country) {
+            const countryCurrency = getCountryCurrency(user.country);
+            setCurrency(countryCurrency);
+            return;
+          }
+        }
+
+        // Then check localStorage
+        const savedCurrency = localStorage.getItem('paraboda_currency') as Currency;
+        if (savedCurrency && currencies.find(c => c.code === savedCurrency)) {
+          setCurrency(savedCurrency);
+          return;
+        }
+
+        // Default to KES
+        setCurrency('KES');
+      } catch (error) {
+        console.error('Error initializing currency:', error);
+        setCurrency('KES');
       }
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-    }
+    };
+
+    initializeCurrency();
   }, []);
 
   const handleSetCurrency = (newCurrency: Currency) => {
     setCurrency(newCurrency);
     try {
       localStorage.setItem('paraboda_currency', newCurrency);
+      
+      // Update user profile if exists
+      const userData = localStorage.getItem('paraboda_user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.preferredCurrency = newCurrency;
+        localStorage.setItem('paraboda_user', JSON.stringify(user));
+      }
     } catch (error) {
       console.error('Error saving currency preference:', error);
     }
   };
 
-  const convertAmount = (amount: number, fromCurrency: Currency = 'KSh'): number => {
-    // Convert from source currency to KSh first, then to target currency
-    const amountInKSh = fromCurrency === 'KSh' ? amount : amount / exchangeRates[fromCurrency];
-    return amountInKSh * exchangeRates[currency];
+  const convertAmount = (amount: number, fromCurrency: Currency = 'KES', toCurrency?: Currency): number => {
+    const targetCurrency = toCurrency || currency;
+    
+    // Convert from source currency to KES first, then to target currency
+    const amountInKES = fromCurrency === 'KES' ? amount : amount / exchangeRates[fromCurrency];
+    return amountInKES * exchangeRates[targetCurrency];
   };
 
-  const formatAmount = (amount: number): string => {
-    const convertedAmount = convertAmount(amount);
-    const currencyInfo = currencies.find(c => c.code === currency);
+  const formatAmount = (amount: number, currencyOverride?: Currency): string => {
+    const targetCurrency = currencyOverride || currency;
+    const convertedAmount = convertAmount(amount, 'KES', targetCurrency);
+    const currencyInfo = currencies.find(c => c.code === targetCurrency);
     
     if (!currencyInfo) return `${amount}`;
 
-    // Format based on currency
-    switch (currency) {
-      case 'KSh':
+    // Format based on currency with proper locale
+    switch (targetCurrency) {
+      case 'KES':
         return `KSh ${convertedAmount.toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      case 'UGX':
+        return `UGX ${convertedAmount.toLocaleString('en-UG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      case 'RWF':
+        return `RWF ${convertedAmount.toLocaleString('en-RW', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      case 'CDF':
+        return `CDF ${convertedAmount.toLocaleString('fr-CD', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
       case 'USD':
         return `$${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case 'EUR':
         return `€${convertedAmount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      case 'GBP':
-        return `£${convertedAmount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      case 'ZAR':
-        return `R${convertedAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      case 'UGX':
-        return `UGX ${convertedAmount.toLocaleString('en-UG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-      case 'TZS':
-        return `TZS ${convertedAmount.toLocaleString('en-TZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
       default:
         return `${currencyInfo.symbol}${convertedAmount.toLocaleString()}`;
     }
+  };
+
+  const getCountryCurrency = (countryCode: string): Currency => {
+    return countryCurrencyMap[countryCode] || 'KES';
   };
 
   return (
@@ -111,7 +153,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       formatAmount,
       convertAmount,
       exchangeRates,
-      currencies
+      currencies,
+      getCountryCurrency
     }}>
       {children}
     </CurrencyContext.Provider>

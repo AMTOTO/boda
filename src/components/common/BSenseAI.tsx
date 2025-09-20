@@ -46,7 +46,8 @@ import {
   Plus,
   Search,
   Video,
-  Headphones
+  Headphones,
+  Users
 } from 'lucide-react';
 
 interface BSenseAIProps {
@@ -99,7 +100,14 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
     { id: 'difficulty_breathing', name: language === 'sw' ? 'Ugumu wa kupumua' : 'Difficulty Breathing', icon: Activity, color: 'blue' },
     { id: 'joint_pain', name: language === 'sw' ? 'Maumivu ya viungo' : 'Joint Pain', icon: Activity, color: 'orange' },
     { id: 'skin_rash', name: language === 'sw' ? 'Upele' : 'Skin Rash', icon: Eye, color: 'pink' },
-    { id: 'loss_appetite', name: language === 'sw' ? 'Kupoteza hamu ya chakula' : 'Loss of Appetite', icon: AlertTriangle, color: 'gray' }
+    { id: 'loss_appetite', name: language === 'sw' ? 'Kupoteza hamu ya chakula' : 'Loss of Appetite', icon: AlertTriangle, color: 'gray' },
+    // Maternal & Child Health specific symptoms
+    { id: 'morning_sickness', name: language === 'sw' ? 'Kichefuchefu cha asubuhi' : 'Morning Sickness', icon: Heart, color: 'pink' },
+    { id: 'contractions', name: language === 'sw' ? 'Maumivu ya kujifungua' : 'Labor Contractions', icon: AlertTriangle, color: 'red' },
+    { id: 'bleeding', name: language === 'sw' ? 'Kutokwa na damu' : 'Bleeding', icon: AlertTriangle, color: 'red' },
+    { id: 'baby_fever', name: language === 'sw' ? 'Homa ya mtoto' : 'Baby Fever', icon: Heart, color: 'red' },
+    { id: 'baby_crying', name: language === 'sw' ? 'Mtoto analia sana' : 'Excessive Crying', icon: Heart, color: 'orange' },
+    { id: 'feeding_problems', name: language === 'sw' ? 'Shida za kunyonya' : 'Feeding Problems', icon: Heart, color: 'yellow' }
   ];
 
   // Health education topics
@@ -109,7 +117,10 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
     { id: 'nutrition', name: language === 'sw' ? 'Lishe' : 'Nutrition', icon: Heart, emoji: '🥗' },
     { id: 'hygiene', name: language === 'sw' ? 'Usafi' : 'Hygiene', icon: Shield, emoji: '🧼' },
     { id: 'maternal_health', name: language === 'sw' ? 'Afya ya mama' : 'Maternal Health', icon: Heart, emoji: '🤱' },
-    { id: 'child_health', name: language === 'sw' ? 'Afya ya mtoto' : 'Child Health', icon: Heart, emoji: '👶' }
+    { id: 'child_health', name: language === 'sw' ? 'Afya ya mtoto' : 'Child Health', icon: Heart, emoji: '👶' },
+    { id: 'anc_care', name: language === 'sw' ? 'Huduma za ANC' : 'ANC Care', icon: Heart, emoji: '🤰' },
+    { id: 'family_planning', name: language === 'sw' ? 'Mpango wa familia' : 'Family Planning', icon: Users, emoji: '👨‍👩‍👧‍👦' },
+    { id: 'breastfeeding', name: language === 'sw' ? 'Kunyonyesha' : 'Breastfeeding', icon: Heart, emoji: '🤱' }
   ];
 
   // Common health myths
@@ -118,7 +129,10 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
     language === 'sw' ? 'Malaria haisambazwi na mbu' : 'Malaria is not spread by mosquitoes',
     language === 'sw' ? 'Dawa za asili ni bora kuliko za hospitali' : 'Traditional medicine is always better than modern medicine',
     language === 'sw' ? 'COVID-19 ni uwongo' : 'COVID-19 is a hoax',
-    language === 'sw' ? 'Kunywa maji ya moto kunatibu ugonjwa wote' : 'Drinking hot water cures all diseases'
+    language === 'sw' ? 'Kunywa maji ya moto kunatibu ugonjwa wote' : 'Drinking hot water cures all diseases',
+    language === 'sw' ? 'Wajawazito hawapaswa kula samaki' : 'Pregnant women should not eat fish',
+    language === 'sw' ? 'Watoto wanapaswa kunywa maji tangu kuzaliwa' : 'Babies should drink water from birth',
+    language === 'sw' ? 'Chanjo za ANC ni hatari' : 'ANC vaccines are dangerous'
   ];
 
   // Suggested questions based on user role
@@ -127,7 +141,11 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
       language === 'sw' ? 'Nina homa na kikohozi. Inaweza kuwa nini?' : 'I have fever and cough. What could it be?',
       language === 'sw' ? 'Ni chanjo gani mtoto wangu anahitaji?' : 'What vaccines does my child need?',
       language === 'sw' ? 'Dalili za malaria ni zipi?' : 'What are the symptoms of malaria?',
-      language === 'sw' ? 'Jinsi ya kuzuia magonjwa ya kuhara' : 'How to prevent diarrheal diseases'
+      language === 'sw' ? 'Jinsi ya kuzuia magonjwa ya kuhara' : 'How to prevent diarrheal diseases',
+      language === 'sw' ? 'Ni lini niende ANC?' : 'When should I go for ANC?',
+      language === 'sw' ? 'Mtoto wangu analia sana' : 'My baby cries too much',
+      language === 'sw' ? 'Ni chakula gani bora kwa mjamzito?' : 'What foods are best for pregnant women?',
+      language === 'sw' ? 'Dalili za kujifungua ni zipi?' : 'What are the signs of labor?'
     ],
     rider: [
       language === 'sw' ? 'Dalili za dharura za afya ni zipi?' : 'What are signs of a health emergency?',
@@ -352,10 +370,48 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
     setRecordingType(type);
     setIsRecording(true);
     
-    // Mock recording - in real implementation, use MediaRecorder API
-    setTimeout(() => {
-      stopRecording();
-    }, 3000);
+    // Check if media devices are available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const userMessage: ChatMessage = {
+        id: `error_${Date.now()}`,
+        type: 'ai',
+        content: language === 'sw' 
+          ? 'Samahani, kamera au mikrofoni havipatikani kwenye kifaa hiki.'
+          : 'Sorry, camera or microphone not available on this device.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setIsRecording(false);
+      setRecordingType(null);
+      return;
+    }
+
+    // Try to access media
+    const constraints = type === 'audio' 
+      ? { audio: true }
+      : { video: true, audio: true };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(() => {
+        // Mock recording - in real implementation, use MediaRecorder API
+        setTimeout(() => {
+          stopRecording();
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error('Media access error:', error);
+        const userMessage: ChatMessage = {
+          id: `error_${Date.now()}`,
+          type: 'ai',
+          content: language === 'sw' 
+            ? 'Imeshindwa kupata ufikiaji wa kamera/mikrofoni. Tafadhali ruhusu ufikiaji katika mipangilio ya kivinjari.'
+            : 'Failed to access camera/microphone. Please allow access in your browser settings.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setIsRecording(false);
+        setRecordingType(null);
+      });
   };
 
   const stopRecording = () => {

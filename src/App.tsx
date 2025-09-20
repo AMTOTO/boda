@@ -21,6 +21,7 @@ import { Chatbot } from './components/common/Chatbot';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { SHALoanRequestPage } from './pages/SHALoanRequestPage';
 import { AdminIcon } from './components/common/AdminIcon';
+import { WalletOverview } from './components/wallet/WalletOverview';
 
 function App() {
   return (
@@ -39,6 +40,9 @@ function App() {
                       <Route path="/auth" element={<AuthPage />} />
                       <Route path="/register" element={<RegistrationPage />} />
                       <Route path="/sha-loan-request" element={<ProtectedRoute><SHALoanRequestPage /></ProtectedRoute>} />
+
+                      {/* M-SUPU Wallet Route */}
+                      <Route path="/wallet" element={<WalletOverview />} />
 
                       {/* Admin Dashboard - No authentication required for demo */}
                       <Route

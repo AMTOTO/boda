@@ -5,6 +5,7 @@ export { MedicalLoanOptions } from './loans/MedicalLoanOptions';
 export { LoanApplicationForm } from './loans/LoanApplicationForm';
 export { LoanPaymentForm } from './loans/LoanPaymentForm';
 export { AddSavingsForm } from './AddSavingsForm';
+export { WalletOverview } from './WalletOverview';
 
 // Types
 export type { } from './CreditProfileCard';
