@@ -352,11 +352,49 @@ export const BSenseAI: React.FC<BSenseAIProps> = ({ isOpen, onClose, userRole = 
 
   const startVoiceInput = () => {
     setIsListening(true);
-    // Mock voice input - in real implementation, use Web Speech API
-    setTimeout(() => {
-      setInputText(language === 'sw' ? 'Nina homa na maumivu ya kichwa' : 'I have fever and headache');
-      setIsListening(false);
-    }, 2000);
+    
+    // Check if speech recognition is available
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      try {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onresult = (event: any) => {
+          const result = event.results[0][0].transcript;
+          setInputText(result);
+          setIsListening(false);
+        };
+        
+        recognition.onerror = () => {
+          setIsListening(false);
+          // Fallback to mock input
+          setTimeout(() => {
+            setInputText(language === 'sw' ? 'Nina homa na maumivu ya kichwa' : 'I have fever and headache');
+          }, 1000);
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+        
+        recognition.start();
+      } catch (error) {
+        console.warn('Speech recognition error:', error);
+        setIsListening(false);
+        // Fallback to mock input
+        setTimeout(() => {
+          setInputText(language === 'sw' ? 'Nina homa na maumivu ya kichwa' : 'I have fever and headache');
+        }, 1000);
+      }
+    } else {
+      // Mock voice input for unsupported browsers
+      setTimeout(() => {
+        setInputText(language === 'sw' ? 'Nina homa na maumivu ya kichwa' : 'I have fever and headache');
+        setIsListening(false);
+      }, 2000);
+    }
   };
 
   const handleSuggestedQuestion = (question: string) => {

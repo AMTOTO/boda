@@ -239,26 +239,66 @@ export const CreditCoachChat: React.FC<CreditCoachChatProps> = ({
 
   const startVoiceInput = () => {
     setIsListening(true);
-    // Mock voice input - in real implementation, use Web Speech API
-    setTimeout(() => {
-      setInputText(language === 'sw' ? 'Ninahitaji msaada wa kuokoa pesa' : 'I need help with saving money');
-      setIsListening(false);
-    }, 2000);
+    
+    // Check if speech recognition is available
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      try {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onresult = (event: any) => {
+          const result = event.results[0][0].transcript;
+          setInputText(result);
+          setIsListening(false);
+        };
+        
+        recognition.onerror = () => {
+          setIsListening(false);
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+        
+        recognition.start();
+      } catch (error) {
+        console.warn('Speech recognition error:', error);
+        setIsListening(false);
+      }
+    } else {
+      // Mock voice input for unsupported browsers
+      setTimeout(() => {
+        setInputText(language === 'sw' ? 'Ninahitaji msaada wa kuokoa pesa' : 'I need help with saving money');
+        setIsListening(false);
+      }, 2000);
+    }
   };
 
   const speakMessage = (text: string) => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       setIsSpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Text-to-speech error:', error);
+        setIsSpeaking(false);
+      }
     }
   };
 
   const stopSpeaking = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      } catch (error) {
+        console.warn('Speech synthesis cancel error:', error);
+        setIsSpeaking(false);
+      }
     }
   };
 

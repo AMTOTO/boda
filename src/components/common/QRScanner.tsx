@@ -59,7 +59,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({
       setIsScanning(true);
       
       // Check if camera is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (typeof window === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error(language === 'sw' 
           ? 'Kamera haipatikani kwenye kifaa hiki'
           : 'Camera not available on this device'
@@ -78,7 +78,11 @@ export const QRScanner: React.FC<QRScannerProps> = ({
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Video play failed:', playError);
+        }
       }
       
       // Start scanning process

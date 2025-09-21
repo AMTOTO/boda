@@ -12,6 +12,11 @@ class OfflineService {
   private db: IDBDatabase | null = null;
 
   async init(): Promise<void> {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      console.warn('IndexedDB not available');
+      return;
+    }
+    
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
 

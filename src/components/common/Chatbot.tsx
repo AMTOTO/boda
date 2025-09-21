@@ -229,6 +229,10 @@ RESPONSE GUIDELINES:
   };
 
   const toggleVoiceInput = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     if (isVoiceListening) {
       stopVoiceListening();
     } else {

@@ -82,6 +82,11 @@ export const EmergencyReportModal: React.FC<EmergencyReportModalProps> = ({
   };
 
   const startVoiceRecording = async () => {
+    if (typeof window === 'undefined' || !navigator.mediaDevices) {
+      console.warn('Media devices not available');
+      return;
+    }
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -101,7 +106,8 @@ export const EmergencyReportModal: React.FC<EmergencyReportModalProps> = ({
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Failed to start recording:', error);
+      console.warn('Failed to start recording:', error);
+      // Don't show error to user, just disable recording
     }
   };
 

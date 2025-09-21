@@ -41,29 +41,32 @@ export const LandingPage: React.FC = () => {
   const [showEmergencyBanner, setShowEmergencyBanner] = useState(true);
   const [currentAlert, setCurrentAlert] = useState(0);
 
-  // Public health alerts/announcements
+  // Public health alerts/announcements - shortened for mobile
   const publicAlerts = [
     {
       id: 1,
       type: 'vaccination',
       title: language === 'sw' ? 'Chanjo za HPV' : 'HPV Vaccination',
-      message: language === 'sw' ? 'Wasichana 9-14 - kituo cha afya' : 'Girls 9-14 - health center',
+      message: language === 'sw' ? 'Wasichana 9-14' : 'Girls 9-14',
+      fullMessage: language === 'sw' ? 'Wasichana 9-14 - kituo cha afya' : 'Girls 9-14 - health center',
       priority: 'high',
       emoji: '💉'
     },
     {
       id: 2,
       type: 'outbreak',
-      title: language === 'sw' ? 'Tahadhari ya Kipindupindu' : 'Cholera Alert',
+      title: language === 'sw' ? 'Tahadhari' : 'Alert',
       message: language === 'sw' ? 'Tumia maji safi' : 'Use clean water',
+      fullMessage: language === 'sw' ? 'Tahadhari ya Kipindupindu - Tumia maji safi' : 'Cholera Alert - Use clean water',
       priority: 'critical',
       emoji: '🚨'
     },
     {
       id: 3,
       type: 'weather',
-      title: language === 'sw' ? 'Msimu wa Mvua' : 'Rainy Season',
-      message: language === 'sw' ? 'Tumia chandarua' : 'Use mosquito nets',
+      title: language === 'sw' ? 'Mvua' : 'Rain',
+      message: language === 'sw' ? 'Tumia chandarua' : 'Use nets',
+      fullMessage: language === 'sw' ? 'Msimu wa Mvua - Tumia chandarua' : 'Rainy Season - Use mosquito nets',
       priority: 'medium',
       emoji: '🌧️'
     }
@@ -174,12 +177,12 @@ export const LandingPage: React.FC = () => {
         <div className="pattern-kente absolute inset-0"></div>
       </div>
 
-      {/* Top Language Selector Bar */}
-      <div className="bg-gradient-to-r from-green-600 via-yellow-500 to-red-500 p-2 sm:p-3 relative z-50">
+      {/* Top Language Selector Bar - Responsive */}
+      <div className="bg-gradient-to-r from-green-600 via-yellow-500 to-red-500 p-2 relative z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <span className="text-2xl sm:text-4xl">🌍</span>
-            <span className="text-white font-bold text-sm sm:text-lg">
+          <div className="flex items-center space-x-2">
+            <span className="text-lg sm:text-2xl">🌍</span>
+            <span className="text-white font-bold text-xs sm:text-sm md:text-base">
               {t('landing.choose_language')}
             </span>
           </div>
@@ -192,46 +195,42 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Emergency Banner - Responsive */}
+      {/* Emergency Banner - Mobile Optimized */}
       {showEmergencyBanner && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-red-600 to-red-700 text-white p-3 sm:p-4 relative z-40 shadow-lg"
+          className="bg-gradient-to-r from-red-600 to-red-700 text-white p-2 sm:p-3 relative z-40 shadow-lg"
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center animate-pulse flex-shrink-0">
-                  <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6" />
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center animate-pulse flex-shrink-0">
+                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm sm:text-xl font-bold truncate">
-                    {t('landing.emergency_banner')}
+                  <h3 className="text-xs sm:text-sm md:text-base font-bold truncate">
+                    🚨 {language === 'sw' ? 'DHARURA' : 'EMERGENCY'}
                   </h3>
-                  <p className="text-red-100 text-xs sm:text-base hidden sm:block">
-                    {language === 'sw' 
-                      ? 'Ufikiaji wa haraka bila kuingia'
-                      : 'Quick access without login'
-                    }
+                  <p className="text-red-100 text-xs hidden sm:block">
+                    {language === 'sw' ? 'Ufikiaji wa haraka' : 'Quick access'}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+              <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <Link
                   to="/auth?emergency=true"
-                  className="bg-white text-red-600 px-3 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
+                  className="bg-white text-red-600 px-2 py-1 sm:px-3 sm:py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center space-x-1 text-xs sm:text-sm"
                 >
-                  <span className="text-lg sm:text-2xl">🚨</span>
-                  <span className="hidden sm:inline">{language === 'sw' ? 'DHARURA' : 'EMERGENCY'}</span>
-                  <span className="sm:hidden">{language === 'sw' ? 'SOS' : 'SOS'}</span>
+                  <span className="text-sm sm:text-base">🚨</span>
+                  <span>{language === 'sw' ? 'SOS' : 'SOS'}</span>
                 </Link>
                 <button
                   onClick={() => setShowEmergencyBanner(false)}
-                  className="text-white/80 hover:text-white p-1 sm:p-2"
+                  className="text-white/80 hover:text-white p-1"
                   aria-label="Close emergency banner"
                 >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
@@ -239,30 +238,37 @@ export const LandingPage: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Public Health Alerts Carousel - Responsive */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 sm:p-4 relative z-30">
+      {/* Public Health Alerts Carousel - Mobile Optimized */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 sm:p-3 relative z-30">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-              <Megaphone className="w-4 h-4 sm:w-6 sm:h-6" />
-              <span className="font-bold text-xs sm:text-base">
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <Megaphone className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-bold text-xs sm:text-sm hidden sm:block">
                 {language === 'sw' ? 'Matangazo' : 'Alerts'}
               </span>
             </div>
             
-            {/* Alert Content */}
+            {/* Alert Content - Responsive */}
             <div className="flex-1 overflow-hidden min-w-0">
               <motion.div
                 key={currentAlert}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
-                className="flex items-center space-x-2 sm:space-x-3"
+                className="flex items-center space-x-1 sm:space-x-2"
               >
-                <span className="text-lg sm:text-2xl flex-shrink-0">{publicAlerts[currentAlert].emoji}</span>
+                <span className="text-sm sm:text-lg flex-shrink-0">{publicAlerts[currentAlert].emoji}</span>
                 <div className="min-w-0 flex-1">
-                  <span className="font-bold text-sm sm:text-base block sm:inline">{publicAlerts[currentAlert].title}</span>
-                  <span className="ml-0 sm:ml-2 opacity-90 text-xs sm:text-base block sm:inline">{publicAlerts[currentAlert].message}</span>
+                  <span className="font-bold text-xs sm:text-sm block">
+                    {publicAlerts[currentAlert].title}
+                  </span>
+                  <span className="opacity-90 text-xs sm:text-sm block sm:hidden">
+                    {publicAlerts[currentAlert].message}
+                  </span>
+                  <span className="opacity-90 text-sm hidden sm:block">
+                    {publicAlerts[currentAlert].fullMessage}
+                  </span>
                 </div>
               </motion.div>
             </div>
@@ -273,7 +279,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentAlert(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
+                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
                     index === currentAlert ? 'bg-white' : 'bg-white/40'
                   }`}
                   aria-label={`View alert ${index + 1}`}
@@ -284,16 +290,16 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Header - Responsive */}
+      {/* Header - Improved Structure */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-effect border-b-4 border-yellow-400 sticky top-0 z-40 relative"
+        className="glass-effect border-b-2 border-yellow-400 sticky top-0 z-40 relative"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20 lg:h-24">
-            <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-yellow-400">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex justify-between items-center h-14 sm:h-16 lg:h-20">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl overflow-hidden shadow-lg border-2 border-yellow-400 flex-shrink-0">
                 <img 
                   src="/PARABODA LOGO.png" 
                   alt="ParaBoda Logo"
@@ -303,35 +309,35 @@ export const LandingPage: React.FC = () => {
                     target.style.display = 'none';
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = '<div class="w-full h-full bg-yellow-400 flex items-center justify-center text-white font-bold text-xs sm:text-sm">PB</div>';
+                      parent.innerHTML = '<div class="w-full h-full bg-yellow-400 flex items-center justify-center text-white font-bold text-xs">PB</div>';
                     }
                   }}
                 />
               </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg lg:text-xl font-bold text-gray-900 truncate">
                   {t('landing.title')}
                 </h1>
-                <p className="text-sm sm:text-lg lg:text-xl text-green-600 font-bold">
+                <p className="text-xs sm:text-sm text-green-600 font-medium hidden sm:block">
                   {t('landing.subtitle')}
                 </p>
               </div>
             </div>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+            <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
               <Link 
                 to="/auth"
-                className="flex items-center space-x-2 lg:space-x-3 text-gray-700 hover:text-gray-900 font-bold transition-colors px-4 lg:px-6 py-2 lg:py-3 rounded-2xl hover:bg-yellow-100 text-lg lg:text-xl"
+                className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 font-bold transition-colors px-3 lg:px-4 py-2 rounded-xl hover:bg-yellow-100 text-sm lg:text-base"
               >
-                <span className="text-xl lg:text-2xl">🔑</span>
+                <span className="text-lg">🔑</span>
                 <span>{t('landing.login')}</span>
               </Link>
               <Link 
                 to="/register"
-                className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all font-black text-lg lg:text-xl shadow-xl transform hover:scale-105 flex items-center space-x-2 lg:space-x-3"
+                className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 lg:px-6 py-2 lg:py-3 rounded-xl hover:from-green-600 hover:to-blue-600 transition-all font-bold text-sm lg:text-base shadow-lg transform hover:scale-105 flex items-center space-x-2"
               >
-                <span className="text-xl lg:text-2xl">✨</span>
+                <span className="text-lg">✨</span>
                 <span>{language === 'sw' ? 'Jiunge' : 'Join'}</span>
               </Link>
             </div>
@@ -340,10 +346,10 @@ export const LandingPage: React.FC = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-3 rounded-2xl text-gray-600 hover:text-gray-900 hover:bg-yellow-100 transition-colors"
+                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-yellow-100 transition-colors"
                 aria-label="Toggle menu"
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -355,23 +361,23 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden border-t-2 border-yellow-300 py-4"
+                className="md:hidden border-t border-yellow-300 py-3"
               >
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-3">
                   <Link 
                     to="/auth"
-                    className="flex items-center justify-center space-x-3 text-gray-700 hover:text-gray-900 font-bold transition-colors px-6 py-4 rounded-2xl hover:bg-yellow-100 text-lg"
+                    className="flex items-center justify-center space-x-2 text-gray-700 hover:text-gray-900 font-bold transition-colors px-4 py-3 rounded-xl hover:bg-yellow-100 text-base"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="text-2xl">🔑</span>
+                    <span className="text-xl">🔑</span>
                     <span>{t('landing.login')}</span>
                   </Link>
                   <Link 
                     to="/register"
-                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all font-black text-lg shadow-xl flex items-center justify-center space-x-3"
+                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-blue-600 transition-all font-bold text-base shadow-lg flex items-center justify-center space-x-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="text-2xl">✨</span>
+                    <span className="text-xl">✨</span>
                     <span>{language === 'sw' ? 'Jiunge' : 'Join'}</span>
                   </Link>
                 </div>
@@ -381,15 +387,15 @@ export const LandingPage: React.FC = () => {
         </div>
       </motion.header>
 
-      {/* Hero Section - Responsive */}
-      <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 relative">
+      {/* Hero Section - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 px-3 sm:px-4 lg:px-6 relative">
         <div className="max-w-6xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 mx-auto mb-6 sm:mb-8 rounded-full overflow-hidden shadow-2xl border-4 sm:border-8 border-yellow-400">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mx-auto mb-4 sm:mb-6 rounded-full overflow-hidden shadow-xl border-3 sm:border-4 border-yellow-400">
               <img 
                 src="/PARABODA LOGO.png" 
                 alt="ParaBoda Logo"
@@ -399,30 +405,30 @@ export const LandingPage: React.FC = () => {
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    parent.innerHTML = '<div class="w-full h-full bg-yellow-400 flex items-center justify-center text-white font-bold text-2xl">PB</div>';
+                    parent.innerHTML = '<div class="w-full h-full bg-yellow-400 flex items-center justify-center text-white font-bold text-lg">PB</div>';
                   }
                 }}
               />
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-900 mb-4 sm:mb-6 lg:mb-8 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-gray-900 mb-3 sm:mb-4 lg:mb-6 leading-tight px-2">
               {t('landing.title')}
             </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl text-gray-600 font-bold mb-8 sm:mb-10 lg:mb-12 max-w-4xl mx-auto px-4">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 font-bold mb-6 sm:mb-8 lg:mb-10 max-w-4xl mx-auto px-3">
               {t('landing.description')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-3">
               <Link
                 to="/register"
-                className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 sm:px-12 py-4 sm:py-6 rounded-2xl sm:rounded-3xl hover:from-green-600 hover:to-blue-600 transition-all font-black text-lg sm:text-xl lg:text-2xl shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-3 sm:space-x-4"
+                className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:from-green-600 hover:to-blue-600 transition-all font-bold text-base sm:text-lg shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
               >
-                <span className="text-2xl sm:text-3xl">🚀</span>
+                <span className="text-xl sm:text-2xl">🚀</span>
                 <span>{t('landing.get_started')}</span>
               </Link>
               <Link
                 to="/auth"
-                className="w-full sm:w-auto border-2 sm:border-4 border-gray-700 text-gray-700 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl sm:rounded-3xl hover:bg-gray-700 hover:text-white transition-all font-black text-lg sm:text-xl lg:text-2xl flex items-center justify-center space-x-3 sm:space-x-4"
+                className="w-full sm:w-auto border-2 border-gray-700 text-gray-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-gray-700 hover:text-white transition-all font-bold text-base sm:text-lg flex items-center justify-center space-x-2"
               >
-                <span className="text-2xl sm:text-3xl">🔑</span>
+                <span className="text-xl sm:text-2xl">🔑</span>
                 <span>{t('landing.login')}</span>
               </Link>
             </div>
@@ -430,26 +436,26 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Dashboard Previews Section - Responsive Grid */}
-      <section className="py-8 sm:py-12 lg:py-16 glass-effect relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Dashboard Previews Section - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 glass-effect relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            className="text-center mb-6 sm:mb-8 lg:mb-12"
           >
-            <div className="text-4xl sm:text-6xl lg:text-8xl mb-4 sm:mb-6 animate-bounce">👀</div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 mb-4 sm:mb-6 lg:mb-8 px-4">
+            <div className="text-3xl sm:text-4xl lg:text-6xl mb-3 sm:mb-4 animate-bounce">👀</div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-gray-900 mb-3 sm:mb-4 lg:mb-6 px-2">
               {t('landing.choose_role')}
             </h2>
-            <div className="inline-flex items-center space-x-2 sm:space-x-4 bg-green-100 text-green-800 px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 rounded-full text-sm sm:text-lg lg:text-xl font-bold">
-              <span className="text-lg sm:text-2xl lg:text-3xl">👁️</span>
+            <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 sm:px-4 py-2 sm:py-3 rounded-full text-xs sm:text-sm lg:text-base font-bold">
+              <span className="text-sm sm:text-lg">👁️</span>
               <span>{t('landing.no_login_required')}</span>
             </div>
           </motion.div>
 
           {/* Responsive Dashboard Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
             {dashboardPreviews.map((dashboard, index) => (
               <motion.div
                 key={index}
@@ -458,45 +464,48 @@ export const LandingPage: React.FC = () => {
                 transition={{ delay: 0.1 * index }}
                 className="group"
               >
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 h-full">
-                  <div className={`bg-gradient-to-r ${dashboard.bgGradient} p-4 sm:p-6 text-white`}>
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 h-full">
+                  <div className={`bg-gradient-to-r ${dashboard.bgGradient} p-3 sm:p-4 text-white`}>
                     <div className="text-center">
-                      <div className="text-3xl sm:text-4xl lg:text-6xl mb-2 sm:mb-4">
+                      <div className="text-2xl sm:text-3xl lg:text-4xl mb-2">
                         {dashboard.emoji}
                       </div>
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-4 mx-auto shadow-xl">
-                        <dashboard.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2 mx-auto shadow-lg">
+                        <dashboard.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 flex flex-col h-full">
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-gray-900 mb-2 sm:mb-4 text-center">
+                  <div className="p-3 sm:p-4 flex flex-col h-full">
+                    <h3 className="text-sm sm:text-base lg:text-lg font-black text-gray-900 mb-2 sm:mb-3 text-center">
                       {dashboard.subtitle}
                     </h3>
-                    <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 sm:mb-6 font-bold leading-relaxed text-center flex-grow">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 font-medium leading-relaxed text-center flex-grow">
                       {dashboard.description}
                     </p>
                     
-                    {/* Features List */}
-                    <div className="mb-4 sm:mb-6">
-                      <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
-                        {dashboard.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center space-x-2">
-                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-                            <span>{feature}</span>
+                    {/* Features List - Compact for mobile */}
+                    <div className="mb-3 sm:mb-4">
+                      <ul className="space-y-1 text-xs text-gray-600">
+                        {dashboard.features.slice(0, 2).map((feature, idx) => (
+                          <li key={idx} className="flex items-center space-x-1">
+                            <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                            <span className="truncate">{feature}</span>
                           </li>
                         ))}
+                        {dashboard.features.length > 2 && (
+                          <li className="text-gray-500">+{dashboard.features.length - 2} more</li>
+                        )}
                       </ul>
                     </div>
                     
                     <Link
                       to={dashboard.path}
-                      className={`w-full bg-gradient-to-r ${dashboard.bgGradient} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:shadow-xl transition-all font-black text-sm sm:text-lg lg:text-xl flex items-center justify-center space-x-2 sm:space-x-3 group-hover:scale-105 mt-auto`}
+                      className={`w-full bg-gradient-to-r ${dashboard.bgGradient} text-white py-2 sm:py-3 rounded-lg sm:rounded-xl hover:shadow-lg transition-all font-bold text-xs sm:text-sm lg:text-base flex items-center justify-center space-x-1 sm:space-x-2 group-hover:scale-105 mt-auto`}
                     >
-                      <span className="text-lg sm:text-xl lg:text-2xl">👆</span>
+                      <span className="text-sm sm:text-lg">👆</span>
                       <span>{t('action.open')}</span>
-                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Link>
                   </div>
                 </div>
@@ -506,28 +515,28 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section - Responsive */}
-      <section className="py-8 sm:py-12 lg:py-16 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 relative">
+      {/* Features Section - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 relative">
         <div className="absolute inset-0 pattern-kente opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4 sm:mb-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-3 sm:mb-4">
               {language === 'sw' ? 'Huduma Zetu' : 'Our Services'}
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-center glass-effect p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl"
+              className="text-center glass-effect p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl"
             >
-              <div className="text-4xl sm:text-6xl lg:text-8xl mb-4 sm:mb-6">🚨</div>
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+              <div className="text-3xl sm:text-4xl lg:text-6xl mb-3 sm:mb-4">🚨</div>
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
                 {t('emergency.title')}
               </h3>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-700">
+              <p className="text-sm sm:text-base text-gray-700">
                 {t('emergency.request_help')}
               </p>
             </motion.div>
@@ -536,13 +545,13 @@ export const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-center glass-effect p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl"
+              className="text-center glass-effect p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl"
             >
-              <div className="text-4xl sm:text-6xl lg:text-8xl mb-4 sm:mb-6">🏍️</div>
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+              <div className="text-3xl sm:text-4xl lg:text-6xl mb-3 sm:mb-4">🏍️</div>
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
                 {t('service.transport')}
               </h3>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-700">
+              <p className="text-sm sm:text-base text-gray-700">
                 {language === 'sw' ? 'Usafiri wa afya wa haraka' : 'Fast health transport'}
               </p>
             </motion.div>
@@ -551,13 +560,13 @@ export const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-center glass-effect p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl"
+              className="text-center glass-effect p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl"
             >
-              <div className="text-4xl sm:text-6xl lg:text-8xl mb-4 sm:mb-6">🧠</div>
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+              <div className="text-3xl sm:text-4xl lg:text-6xl mb-3 sm:mb-4">🧠</div>
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
                 {t('service.ai_assistant')}
               </h3>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-700">
+              <p className="text-sm sm:text-base text-gray-700">
                 {language === 'sw' ? 'Msaada wa akili bandia' : 'AI health guidance'}
               </p>
             </motion.div>
@@ -565,50 +574,50 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* M-SUPU Wallet Feature - Responsive */}
-      <section className="py-8 sm:py-12 lg:py-16 bg-gradient-to-br from-emerald-50 to-teal-50 relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* M-SUPU Wallet Feature - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 bg-gradient-to-br from-emerald-50 to-teal-50 relative">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="text-4xl sm:text-6xl lg:text-8xl mb-6 sm:mb-8">💰</div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 mb-4 sm:mb-6 lg:mb-8">
+            <div className="text-3xl sm:text-4xl lg:text-6xl mb-4 sm:mb-6">💰</div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-gray-900 mb-3 sm:mb-4 lg:mb-6">
               {t('wallet.title')}
             </h2>
-            <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 font-bold mb-8 sm:mb-10 lg:mb-12 px-4">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 font-bold mb-6 sm:mb-8 lg:mb-10 max-w-4xl mx-auto px-2">
               {language === 'sw' 
                 ? 'Fedha za jamii, mikopo, na akiba' 
                 : 'Community funds, loans, and savings'}
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
-              <div className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-emerald-200">
-                <Wallet className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-600 mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 border-emerald-200">
+                <Wallet className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-emerald-600 mx-auto mb-3" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-2">
                   {t('wallet.savings')}
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {language === 'sw' ? 'Okoa pamoja na jamii' : 'Save together as a community'}
                 </p>
               </div>
               
-              <div className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-blue-200">
-                <Shield className="w-12 h-12 sm:w-16 sm:h-16 text-blue-600 mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+              <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 border-blue-200">
+                <Shield className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-blue-600 mx-auto mb-3" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-2">
                   {language === 'sw' ? 'Mikopo ya Afya' : 'Health Loans'}
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {language === 'sw' ? 'Mikopo ya matibabu na usafiri' : 'Medical and transport loans'}
                 </p>
               </div>
               
-              <div className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-purple-200">
-                <Award className="w-12 h-12 sm:w-16 sm:h-16 text-purple-600 mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+              <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 border-purple-200">
+                <Award className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-purple-600 mx-auto mb-3" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-2">
                   {t('wallet.rewards')}
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {language === 'sw' ? 'Pata zawadi kwa ushiriki' : 'Earn rewards for participation'}
                 </p>
               </div>
@@ -618,48 +627,48 @@ export const LandingPage: React.FC = () => {
             <div>
               <Link
                 to="/wallet"
-                className="inline-flex items-center space-x-3 sm:space-x-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:from-emerald-700 hover:to-teal-700 transition-all font-bold text-lg sm:text-xl shadow-xl transform hover:scale-105"
+                className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all font-bold text-sm sm:text-base lg:text-lg shadow-lg transform hover:scale-105"
               >
-                <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{language === 'sw' ? 'Fungua Pochi' : 'Open Wallet'}</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Statistics Section - Responsive */}
-      <section className="py-8 sm:py-12 lg:py-16 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-4 sm:mb-6">
+      {/* Statistics Section - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 bg-white relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 mb-3 sm:mb-4">
               {language === 'sw' ? 'Athari Yetu' : 'Our Impact'}
             </h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            <div className="text-center bg-blue-50 p-4 sm:p-6 rounded-2xl border-2 border-blue-200">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-blue-600 mb-2">1,247</div>
-              <div className="text-sm sm:text-base font-bold text-blue-800">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            <div className="text-center bg-blue-50 p-3 sm:p-4 rounded-xl border-2 border-blue-200">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-blue-600 mb-1 sm:mb-2">1,247</div>
+              <div className="text-xs sm:text-sm font-bold text-blue-800">
                 {language === 'sw' ? 'Watumiaji' : 'Users'}
               </div>
             </div>
-            <div className="text-center bg-green-50 p-4 sm:p-6 rounded-2xl border-2 border-green-200">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-600 mb-2">2,456</div>
-              <div className="text-sm sm:text-base font-bold text-green-800">
+            <div className="text-center bg-green-50 p-3 sm:p-4 rounded-xl border-2 border-green-200">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-green-600 mb-1 sm:mb-2">2,456</div>
+              <div className="text-xs sm:text-sm font-bold text-green-800">
                 {language === 'sw' ? 'Safari' : 'Trips'}
               </div>
             </div>
-            <div className="text-center bg-purple-50 p-4 sm:p-6 rounded-2xl border-2 border-purple-200">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-purple-600 mb-2">156</div>
-              <div className="text-sm sm:text-base font-bold text-purple-800">
+            <div className="text-center bg-purple-50 p-3 sm:p-4 rounded-xl border-2 border-purple-200">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-purple-600 mb-1 sm:mb-2">156</div>
+              <div className="text-xs sm:text-sm font-bold text-purple-800">
                 {language === 'sw' ? 'CHVs' : 'CHVs'}
               </div>
             </div>
-            <div className="text-center bg-orange-50 p-4 sm:p-6 rounded-2xl border-2 border-orange-200">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-orange-600 mb-2">47</div>
-              <div className="text-sm sm:text-base font-bold text-orange-800">
+            <div className="text-center bg-orange-50 p-3 sm:p-4 rounded-xl border-2 border-orange-200">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-orange-600 mb-1 sm:mb-2">47</div>
+              <div className="text-xs sm:text-sm font-bold text-orange-800">
                 {language === 'sw' ? 'Kaunti' : 'Counties'}
               </div>
             </div>
@@ -667,36 +676,36 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section - Responsive */}
-      <section className="py-8 sm:py-12 lg:py-16 bg-gradient-to-r from-green-500 to-blue-500 relative">
+      {/* CTA Section - Mobile Optimized */}
+      <section className="py-6 sm:py-8 lg:py-12 bg-gradient-to-r from-green-500 to-blue-500 relative">
         <div className="absolute inset-0 pattern-kente opacity-10"></div>
-        <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto text-center px-3 sm:px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="text-4xl sm:text-6xl lg:text-8xl mb-6 sm:mb-8 animate-bounce">🚀</div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white mb-4 sm:mb-6 lg:mb-8">
+            <div className="text-3xl sm:text-4xl lg:text-6xl mb-4 sm:mb-6 animate-bounce">🚀</div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-white mb-3 sm:mb-4 lg:mb-6">
               {language === 'sw' ? 'Jiunge Leo!' : 'Join Today!'}
             </h2>
-            <p className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 sm:mb-10 lg:mb-12 font-bold px-4">
+            <p className="text-base sm:text-lg lg:text-xl text-white/90 mb-6 sm:mb-8 lg:mb-10 font-bold px-2">
               {language === 'sw' 
                 ? 'Jiunge na maelfu ya wakenya' 
                 : 'Join thousands of East Africans'}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
               <Link
                 to="/register"
-                className="w-full sm:w-auto bg-white text-green-600 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl sm:rounded-3xl hover:bg-gray-50 transition-colors font-black text-lg sm:text-xl lg:text-2xl shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 transform hover:scale-105"
+                className="w-full sm:w-auto bg-white text-green-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-gray-50 transition-colors font-bold text-base sm:text-lg shadow-xl flex items-center justify-center space-x-2 transform hover:scale-105"
               >
-                <span className="text-2xl sm:text-3xl lg:text-4xl">✨</span>
+                <span className="text-xl sm:text-2xl">✨</span>
                 <span>{t('landing.get_started')}</span>
               </Link>
               <Link
                 to="/auth"
-                className="w-full sm:w-auto border-2 sm:border-4 border-white text-white px-8 sm:px-12 py-4 sm:py-6 rounded-2xl sm:rounded-3xl hover:bg-white/10 transition-colors font-black text-lg sm:text-xl lg:text-2xl flex items-center justify-center space-x-3 sm:space-x-4"
+                className="w-full sm:w-auto border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-white/10 transition-colors font-bold text-base sm:text-lg flex items-center justify-center space-x-2"
               >
-                <span className="text-2xl sm:text-3xl lg:text-4xl">🔑</span>
+                <span className="text-xl sm:text-2xl">🔑</span>
                 <span>{t('landing.login')}</span>
               </Link>
             </div>
@@ -704,12 +713,12 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer - Responsive */}
-      <footer className="bg-gray-900 text-white py-8 sm:py-12 relative">
+      {/* Footer - Mobile Optimized */}
+      <footer className="bg-gray-900 text-white py-6 sm:py-8 relative">
         <div className="absolute inset-0 pattern-kente opacity-5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-6 sm:mb-8">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl overflow-hidden border-2 sm:border-4 border-yellow-400">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 mb-4 sm:mb-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden border-2 border-yellow-400">
               <img 
                 src="/PARABODA LOGO.png" 
                 alt="ParaBoda Logo"
@@ -724,24 +733,24 @@ export const LandingPage: React.FC = () => {
                 }}
               />
             </div>
-            <span className="text-2xl sm:text-3xl font-black">{t('landing.title')}</span>
+            <span className="text-lg sm:text-xl font-black">{t('landing.title')}</span>
           </div>
-          <div className="text-3xl sm:text-4xl lg:text-6xl mb-4 sm:mb-6">❤️🏥🚴‍♂️</div>
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-400 mb-6 sm:mb-8">
+          <div className="text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4">❤️🏥🚴‍♂️</div>
+          <p className="text-base sm:text-lg lg:text-xl font-bold text-yellow-400 mb-4 sm:mb-6">
             {t('landing.subtitle')}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-sm sm:text-base lg:text-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 text-xs sm:text-sm lg:text-base">
             <div>
-              <h3 className="font-bold mb-3 sm:mb-4">{language === 'sw' ? 'Huduma' : 'Services'}</h3>
-              <ul className="space-y-1 sm:space-y-2 text-gray-300">
+              <h3 className="font-bold mb-2 sm:mb-3">{language === 'sw' ? 'Huduma' : 'Services'}</h3>
+              <ul className="space-y-1 text-gray-300">
                 <li>{t('emergency.transport')}</li>
                 <li>{t('service.health')}</li>
                 <li>{t('service.ai_assistant')}</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-3 sm:mb-4">{language === 'sw' ? 'Majukumu' : 'Roles'}</h3>
-              <ul className="space-y-1 sm:space-y-2 text-gray-300">
+              <h3 className="font-bold mb-2 sm:mb-3">{language === 'sw' ? 'Majukumu' : 'Roles'}</h3>
+              <ul className="space-y-1 text-gray-300">
                 <li>{t('role.caregiver')}</li>
                 <li>{t('role.rider')}</li>
                 <li>CHVs</li>
@@ -749,15 +758,15 @@ export const LandingPage: React.FC = () => {
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-3 sm:mb-4">{language === 'sw' ? 'Mawasiliano' : 'Contact'}</h3>
-              <ul className="space-y-1 sm:space-y-2 text-gray-300">
+              <h3 className="font-bold mb-2 sm:mb-3">{language === 'sw' ? 'Mawasiliano' : 'Contact'}</h3>
+              <ul className="space-y-1 text-gray-300">
                 <li className="flex items-center justify-center space-x-2">
-                  <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>+254 XXX XXX XXX</span>
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-sm">+254 XXX XXX XXX</span>
                 </li>
                 <li className="flex items-center justify-center space-x-2">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-sm sm:text-base">info@paraboda.co.ke</span>
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-sm">info@paraboda.co.ke</span>
                 </li>
               </ul>
             </div>

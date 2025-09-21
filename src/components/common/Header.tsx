@@ -121,32 +121,32 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         {/* African Pattern Overlay */}
         <div className="absolute inset-0 pattern-kente opacity-5"></div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
             {/* Left Side - Navigation Controls */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Navigation Arrows - Hidden on mobile */}
-              <div className="hidden md:flex items-center space-x-2">
+              <div className="hidden lg:flex items-center space-x-1">
                 <motion.button
                   onClick={navigateToPrevious}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-md"
                   title={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
                   aria-label={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
                 >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
 
                 <motion.button
                   onClick={navigateToNext}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-md"
                   title={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
                   aria-label={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
                 >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
               </div>
 
@@ -155,32 +155,31 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 onClick={handleHomeClick}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-md"
                 title={language === 'sw' ? 'Nyumbani' : 'Home'}
                 aria-label={language === 'sw' ? 'Nyumbani' : 'Home'}
               >
-                <Home className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="md:hidden w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="lg:hidden w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-md"
                 aria-label="Toggle mobile menu"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
-            {/* Center - ParaBoda Logo */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
+            {/* Center - ParaBoda Logo and Title */}
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 justify-center min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl overflow-hidden shadow-lg border-2 border-white/30 flex-shrink-0">
                 <img 
                   src="/PARABODA LOGO.png" 
                   alt="ParaBoda Logo"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback to a simple colored div if image fails
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     const parent = target.parentElement;
@@ -190,16 +189,16 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                   }}
                 />
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">ParaBoda</h1>
-                <p className="text-xs sm:text-sm text-white/80 font-medium">
+              <div className="min-w-0 text-center">
+                <h1 className="text-sm sm:text-base lg:text-lg font-bold text-white truncate">ParaBoda</h1>
+                <p className="text-xs text-white/80 font-medium hidden sm:block">
                   {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
                 </p>
               </div>
             </div>
 
             {/* Right Side - Controls */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Language Selector - Hidden on small mobile */}
               <div className="hidden sm:block">
                 <LanguageSelector size="sm" />
@@ -215,11 +214,11 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 onClick={() => setShowProfileModal(true)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-md"
                 title={language === 'sw' ? 'Profaili' : 'Profile'}
                 aria-label={language === 'sw' ? 'Profaili' : 'Profile'}
               >
-                <User className="w-5 h-5 sm:w-6 sm:h-6" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
             </div>
           </div>
@@ -231,10 +230,10 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden border-t border-white/20 py-4"
+                className="lg:hidden border-t border-white/20 py-3"
               >
-                <div className="flex flex-col space-y-3">
-                  <div className="flex justify-center">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex justify-center mb-2">
                     <LanguageSelector size="md" showLabel={true} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -243,19 +242,19 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                         navigateToPrevious();
                         setShowMobileMenu(false);
                       }}
-                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-3 rounded-xl font-medium"
+                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-2 rounded-lg font-medium text-sm"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      <span className="text-sm">{language === 'sw' ? 'Awali' : 'Previous'}</span>
+                      <span>{language === 'sw' ? 'Awali' : 'Previous'}</span>
                     </button>
                     <button
                       onClick={() => {
                         navigateToNext();
                         setShowMobileMenu(false);
                       }}
-                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-3 rounded-xl font-medium"
+                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-2 rounded-lg font-medium text-sm"
                     >
-                      <span className="text-sm">{language === 'sw' ? 'Ijayo' : 'Next'}</span>
+                      <span>{language === 'sw' ? 'Ijayo' : 'Next'}</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -268,11 +267,11 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         {/* Title Section - Only show if title provided */}
         {title && (
           <div className="border-t border-white/20 bg-black/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
               <div className="text-center">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{title}</h2>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white truncate">{title}</h2>
                 {subtitle && (
-                  <p className="text-sm sm:text-base text-white/80 font-medium">{subtitle}</p>
+                  <p className="text-xs sm:text-sm text-white/80 font-medium truncate">{subtitle}</p>
                 )}
               </div>
             </div>
@@ -294,26 +293,26 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden"
             >
               {/* Header */}
-              <div className={`${getHeaderBgClass()} p-6 text-white relative overflow-hidden`}>
+              <div className={`${getHeaderBgClass()} p-4 text-white relative overflow-hidden`}>
                 <div className="absolute inset-0 pattern-kente opacity-10"></div>
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                        <User className="w-8 h-8 text-white" />
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold">{user?.name || 'User'}</h3>
-                        <p className="text-white/80 capitalize">
+                      <div className="min-w-0">
+                        <h3 className="text-lg font-bold truncate">{user?.name || 'User'}</h3>
+                        <p className="text-white/80 capitalize text-sm truncate">
                           {user?.role?.replace('_', ' ') || 'Community Member'}
                         </p>
                         {user?.level && (
                           <div className="flex items-center space-x-1 mt-1">
-                            <Star className="w-4 h-4 text-yellow-300" />
-                            <span className="text-sm text-white/90">{user.level}</span>
+                            <Star className="w-3 h-3 text-yellow-300" />
+                            <span className="text-xs text-white/90">{user.level}</span>
                           </div>
                         )}
                       </div>
@@ -322,17 +321,17 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                       onClick={() => setShowProfileModal(false)}
                       className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                   
                   {user?.points && (
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-white/90">
+                        <span className="text-white/90 text-sm">
                           {language === 'sw' ? 'Pointi' : 'Points'}
                         </span>
-                        <span className="text-xl font-bold text-white">
+                        <span className="text-lg font-bold text-white">
                           {user.points.toLocaleString()}
                         </span>
                       </div>
@@ -342,40 +341,40 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
               </div>
 
               {/* Profile Details */}
-              <div className="p-6 space-y-4">
+              <div className="p-4 space-y-3">
                 {user?.phone && (
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <Phone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{user.phone}</span>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <Phone className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <span className="text-gray-900 dark:text-white text-sm truncate">{user.phone}</span>
                   </div>
                 )}
                 
                 {user?.email && (
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{user.email}</span>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <Mail className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <span className="text-gray-900 dark:text-white text-sm truncate">{user.email}</span>
                   </div>
                 )}
                 
                 {user?.location && (
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <MapPin className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white text-sm">{user.location}</span>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <MapPin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <span className="text-gray-900 dark:text-white text-xs truncate">{user.location}</span>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="p-6 pt-0 space-y-3">
+              <div className="p-4 pt-0 space-y-2">
                 <button
                   onClick={() => {
                     setShowProfileModal(false);
                     // Navigate to settings if available
                   }}
-                  className="w-full flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  className="w-full flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                 >
-                  <Settings className="w-5 h-5" />
-                  <span className="font-semibold">
+                  <Settings className="w-4 h-4" />
+                  <span className="font-semibold text-sm">
                     {language === 'sw' ? 'Mipangilio' : 'Settings'}
                   </span>
                 </button>
@@ -385,10 +384,10 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                     logout();
                     setShowProfileModal(false);
                   }}
-                  className="w-full flex items-center space-x-3 p-4 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                  className="w-full flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                 >
-                  <LogOut className="w-5 h-5" />
-                  <span className="font-semibold">
+                  <LogOut className="w-4 h-4" />
+                  <span className="font-semibold text-sm">
                     {language === 'sw' ? 'Toka' : 'Logout'}
                   </span>
                 </button>

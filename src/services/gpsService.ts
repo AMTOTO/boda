@@ -17,7 +17,7 @@ class GPSService {
 
   async getCurrentLocation(): Promise<GPSLocation> {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
+      if (typeof window === 'undefined' || !navigator.geolocation) {
         reject(new Error('Geolocation not supported'));
         return;
       }
@@ -46,7 +46,7 @@ class GPSService {
   }
 
   startLocationTracking(callback: (location: GPSLocation) => void): void {
-    if (!navigator.geolocation) {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
       console.error('Geolocation not supported');
       return;
     }

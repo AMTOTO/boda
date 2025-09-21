@@ -51,7 +51,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       }
 
       // Check if camera is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (typeof window === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error(language === 'sw' 
           ? 'Kamera haipatikani kwenye kifaa hiki'
           : 'Camera not available on this device'
@@ -100,7 +100,11 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       } else {
         errorMessage = language === 'sw'
           ? 'Imeshindwa kupata ufikiaji wa kamera. Tafadhali ruhusu kamera.'
-          : 'Failed to access camera. Please allow camera access.';
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Video play failed:', playError);
+        }
       }
       
       setError(errorMessage);
