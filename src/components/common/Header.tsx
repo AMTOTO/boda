@@ -3,10 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useCurrency } from '../../contexts/CurrencyContext';
 import { LanguageSelector } from './LanguageSelector';
 import { CurrencySelector } from './CurrencySelector';
-import { QRCodeDisplay } from './QRCodeDisplay';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home,
@@ -21,7 +19,8 @@ import {
   Award,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  Menu
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -34,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   const { language } = useLanguage();
   const { isDark } = useTheme();
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -94,15 +93,6 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
     };
   }, []);
 
-  // Generate QR code data
-  const qrCodeData = JSON.stringify({
-    type: 'paraboda_user',
-    userId: user?.id,
-    name: user?.name,
-    role: user?.role,
-    timestamp: Date.now()
-  });
-
   // Get header background based on user role
   const getHeaderBgClass = () => {
     switch (user?.role) {
@@ -126,78 +116,98 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`${getHeaderBgClass()} shadow-2xl sticky top-0 z-50 relative`}
+        className={`${getHeaderBgClass()} shadow-xl sticky top-0 z-50 relative`}
       >
         {/* African Pattern Overlay */}
         <div className="absolute inset-0 pattern-kente opacity-5"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Left Side - Navigation Controls */}
-            <div className="flex items-center space-x-3">
-              {/* Navigation Arrows */}
-              <motion.button
-                onClick={navigateToPrevious}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
-                title={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
-                aria-label={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </motion.button>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Navigation Arrows - Hidden on mobile */}
+              <div className="hidden md:flex items-center space-x-2">
+                <motion.button
+                  onClick={navigateToPrevious}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                  title={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
+                  aria-label={language === 'sw' ? 'Dashibodi ya awali' : 'Previous dashboard'}
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                </motion.button>
 
-              <motion.button
-                onClick={navigateToNext}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
-                title={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
-                aria-label={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
-              >
-                <ChevronRight className="w-6 h-6" />
-              </motion.button>
+                <motion.button
+                  onClick={navigateToNext}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                  title={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
+                  aria-label={language === 'sw' ? 'Dashibodi ijayo' : 'Next dashboard'}
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </motion.button>
+              </div>
 
               {/* Home Button */}
               <motion.button
                 onClick={handleHomeClick}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
                 title={language === 'sw' ? 'Nyumbani' : 'Home'}
                 aria-label={language === 'sw' ? 'Nyumbani' : 'Home'}
               >
-                <Home className="w-6 h-6" />
+                <Home className="w-5 h-5 sm:w-6 sm:h-6" />
               </motion.button>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="md:hidden w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                aria-label="Toggle mobile menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Center - ParaBoda Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
                 <img 
-                  src="https://i.imgur.com/mIUhG65.png" 
+                  src="/PARABODA LOGO.png" 
                   alt="ParaBoda Logo"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to a simple colored div if image fails
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = '<div class="w-full h-full bg-white/30 flex items-center justify-center text-white font-bold text-xs">PB</div>';
+                    }
+                  }}
                 />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl lg:text-2xl font-bold text-white">ParaBoda</h1>
-                <p className="text-xs lg:text-sm text-white/80 font-medium">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">ParaBoda</h1>
+                <p className="text-xs sm:text-sm text-white/80 font-medium">
                   {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
                 </p>
               </div>
             </div>
 
             {/* Right Side - Controls */}
-            <div className="flex items-center space-x-3">
-              {/* Language Selector */}
-              <div className="hidden md:block">
-                <LanguageSelector />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Language Selector - Hidden on small mobile */}
+              <div className="hidden sm:block">
+                <LanguageSelector size="sm" />
               </div>
               
-              {/* Currency Selector */}
-              <div className="hidden md:block">
-                <CurrencySelector />
+              {/* Currency Selector - Hidden on mobile */}
+              <div className="hidden lg:block">
+                <CurrencySelector size="sm" />
               </div>
               
               {/* Profile Button */}
@@ -205,15 +215,69 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 onClick={() => setShowProfileModal(true)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
                 title={language === 'sw' ? 'Profaili' : 'Profile'}
                 aria-label={language === 'sw' ? 'Profaili' : 'Profile'}
               >
-                <User className="w-6 h-6" />
+                <User className="w-5 h-5 sm:w-6 sm:h-6" />
               </motion.button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {showMobileMenu && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="md:hidden border-t border-white/20 py-4"
+              >
+                <div className="flex flex-col space-y-3">
+                  <div className="flex justify-center">
+                    <LanguageSelector size="md" showLabel={true} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        navigateToPrevious();
+                        setShowMobileMenu(false);
+                      }}
+                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-3 rounded-xl font-medium"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="text-sm">{language === 'sw' ? 'Awali' : 'Previous'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigateToNext();
+                        setShowMobileMenu(false);
+                      }}
+                      className="flex items-center justify-center space-x-2 bg-white/20 text-white py-3 rounded-xl font-medium"
+                    >
+                      <span className="text-sm">{language === 'sw' ? 'Ijayo' : 'Next'}</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
+        {/* Title Section - Only show if title provided */}
+        {title && (
+          <div className="border-t border-white/20 bg-black/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="text-center">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{title}</h2>
+                {subtitle && (
+                  <p className="text-sm sm:text-base text-white/80 font-medium">{subtitle}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </motion.header>
 
       {/* Profile Modal */}
@@ -296,23 +360,13 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 {user?.location && (
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
                     <MapPin className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{user.location}</span>
+                    <span className="text-gray-900 dark:text-white text-sm">{user.location}</span>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons */}
               <div className="p-6 pt-0 space-y-3">
-                <button
-                  onClick={() => setShowQRCode(true)}
-                  className="w-full flex items-center space-x-3 p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  <Shield className="w-5 h-5" />
-                  <span className="font-semibold">
-                    {language === 'sw' ? 'Onyesha QR Code' : 'Show QR Code'}
-                  </span>
-                </button>
-                
                 <button
                   onClick={() => {
                     setShowProfileModal(false);
@@ -339,43 +393,6 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                   </span>
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* QR Code Modal */}
-      <AnimatePresence>
-        {showQRCode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {language === 'sw' ? 'QR Code Yako' : 'Your QR Code'}
-                </h3>
-                <button
-                  onClick={() => setShowQRCode(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <QRCodeDisplay
-                value={qrCodeData}
-                title={language === 'sw' ? 'Utambulisho wa Haraka' : 'Quick Identification'}
-                description={language === 'sw' ? 'Onyesha hii katika vituo vya afya' : 'Show this at health facilities'}
-                size={200}
-              />
             </motion.div>
           </motion.div>
         )}
