@@ -366,7 +366,7 @@ export const RegistrationPage: React.FC = () => {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-16 h-16 rounded-xl overflow-hidden shadow-2xl border-4 border-emerald-400">
               <img 
-                src="/PARABODA LOGO.png" 
+                src="https://i.imgur.com/mIUhG65.png" 
                 alt="ParaBoda Logo"
                 className="w-full h-full object-cover"
               />

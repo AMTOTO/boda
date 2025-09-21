@@ -13,6 +13,7 @@ import { transportService, TransportRequest } from '../../services/transportServ
 import { 
   Car, 
   Heart, 
+  Baby, 
   AlertTriangle, 
   Brain,
   Calendar,
@@ -40,9 +41,7 @@ import {
   BarChart3,
   FileText,
   Settings,
-  Loader,
-  ArrowLeft,
-  Navigation2
+  Loader
 } from 'lucide-react';
 
 // Import BSenseAI component properly

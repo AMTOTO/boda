@@ -224,7 +224,7 @@ export const AuthPage: React.FC = () => {
           <div className="flex items-center justify-center space-x-4 mb-6">
             <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-2xl border-4 border-yellow-400">
               <img 
-                src="/PARABODA LOGO.png" 
+                src="https://i.imgur.com/mIUhG65.png" 
                 alt="ParaBoda Logo"
                 className="w-full h-full object-cover"
               />

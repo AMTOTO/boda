@@ -19,8 +19,9 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { VoiceCommandProvider } from './contexts/VoiceCommandContext';
 import { Chatbot } from './components/common/Chatbot';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
+import { SHALoanRequestPage } from './pages/SHALoanRequestPage';
 import { AdminIcon } from './components/common/AdminIcon';
-import { UnifiedWalletInterface } from './components/wallet/UnifiedWalletInterface';
+import { WalletOverview } from './components/wallet/WalletOverview';
 
 function App() {
   return (
@@ -38,9 +39,10 @@ function App() {
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/auth" element={<AuthPage />} />
                       <Route path="/register" element={<RegistrationPage />} />
+                      <Route path="/sha-loan-request" element={<ProtectedRoute><SHALoanRequestPage /></ProtectedRoute>} />
 
                       {/* M-SUPU Wallet Route */}
-                      <Route path="/wallet" element={<UnifiedWalletInterface />} />
+                      <Route path="/wallet" element={<WalletOverview />} />
 
                       {/* Admin Dashboard - No authentication required for demo */}
                       <Route

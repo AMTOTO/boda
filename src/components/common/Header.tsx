@@ -107,17 +107,17 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   const getHeaderBgClass = () => {
     switch (user?.role) {
       case 'community':
-        return 'bg-gradient-to-r from-blue-500 to-blue-600';
+        return 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700';
       case 'rider':
-        return 'bg-gradient-to-r from-orange-500 to-orange-600';
+        return 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700';
       case 'chv':
-        return 'bg-gradient-to-r from-green-500 to-green-600';
+        return 'bg-gradient-to-r from-green-500 via-green-600 to-green-700';
       case 'health_worker':
-        return 'bg-gradient-to-r from-purple-500 to-purple-600';
+        return 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700';
       case 'admin':
-        return 'bg-gradient-to-r from-gray-600 to-gray-700';
+        return 'bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800';
       default:
-        return 'bg-gradient-to-r from-teal-500 to-emerald-600';
+        return 'bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-700';
     }
   };
 
@@ -126,13 +126,13 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`${getHeaderBgClass()} shadow-xl sticky top-0 z-50 relative`}
+        className={`${getHeaderBgClass()} shadow-2xl sticky top-0 z-50 relative`}
       >
-        {/* Subtle Pattern Overlay */}
-        <div className="absolute inset-0 bg-black/5"></div>
+        {/* African Pattern Overlay */}
+        <div className="absolute inset-0 pattern-kente opacity-5"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-18 relative z-10">
+          <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Left Side - Navigation Controls */}
             <div className="flex items-center space-x-3">
               {/* Navigation Arrows */}
@@ -173,16 +173,16 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 
             {/* Center - ParaBoda Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl overflow-hidden shadow-lg border-2 border-white/30">
+              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30">
                 <img 
-                  src="/PARABODA LOGO.png" 
+                  src="https://i.imgur.com/mIUhG65.png" 
                   alt="ParaBoda Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg lg:text-xl font-bold text-white">ParaBoda</h1>
-                <p className="text-xs text-white/80 font-medium">
+                <h1 className="text-xl lg:text-2xl font-bold text-white">ParaBoda</h1>
+                <p className="text-xs lg:text-sm text-white/80 font-medium">
                   {language === 'sw' ? 'Afya Pamoja' : 'Health Together'}
                 </p>
               </div>
@@ -191,12 +191,12 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
             {/* Right Side - Controls */}
             <div className="flex items-center space-x-3">
               {/* Language Selector */}
-              <div className="hidden lg:block">
+              <div className="hidden md:block">
                 <LanguageSelector />
               </div>
               
               {/* Currency Selector */}
-              <div className="hidden lg:block">
+              <div className="hidden md:block">
                 <CurrencySelector />
               </div>
               
@@ -205,11 +205,11 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
                 onClick={() => setShowProfileModal(true)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 lg:w-12 lg:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
+                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all shadow-lg"
                 title={language === 'sw' ? 'Profaili' : 'Profile'}
                 aria-label={language === 'sw' ? 'Profaili' : 'Profile'}
               >
-                <User className="w-5 h-5 lg:w-6 lg:h-6" />
+                <User className="w-6 h-6" />
               </motion.button>
             </div>
           </div>
@@ -234,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
             >
               {/* Header */}
               <div className={`${getHeaderBgClass()} p-6 text-white relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute inset-0 pattern-kente opacity-10"></div>
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
