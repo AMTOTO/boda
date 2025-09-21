@@ -8,7 +8,7 @@ const PRECACHE_ASSETS = [
   '/index.html',
   '/offline.html',
   '/manifest.json',
-  '/PARABODA LOGO.png'
+  'https://i.imgur.com/mIUhG65.png'
 ];
 
 // Install event - precache critical assets

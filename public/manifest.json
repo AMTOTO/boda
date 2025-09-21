@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/PARABODA LOGO.png",
+      "src": "https://i.imgur.com/mIUhG65.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/PARABODA LOGO.png",
+      "src": "https://i.imgur.com/mIUhG65.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -34,7 +34,7 @@
       "url": "/community",
       "icons": [
         {
-          "src": "/PARABODA LOGO.png",
+          "src": "https://i.imgur.com/mIUhG65.png",
           "sizes": "96x96"
         }
       ]
@@ -46,7 +46,7 @@
       "url": "/rider",
       "icons": [
         {
-          "src": "/PARABODA LOGO.png",
+          "src": "https://i.imgur.com/mIUhG65.png",
           "sizes": "96x96"
         }
       ]
@@ -58,7 +58,7 @@
       "url": "/chv",
       "icons": [
         {
-          "src": "/PARABODA LOGO.png",
+          "src": "https://i.imgur.com/mIUhG65.png",
           "sizes": "96x96"
         }
       ]
@@ -70,7 +70,7 @@
       "url": "/health-worker",
       "icons": [
         {
-          "src": "/PARABODA LOGO.png",
+          "src": "https://i.imgur.com/mIUhG65.png",
           "sizes": "96x96"
         }
       ]
@@ -78,14 +78,14 @@
   ],
   "screenshots": [
     {
-      "src": "/PARABODA LOGO.png",
+      "src": "https://i.imgur.com/mIUhG65.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
       "label": "ParaBoda Dashboard Overview"
     },
     {
-      "src": "/PARABODA LOGO.png",
+      "src": "https://i.imgur.com/mIUhG65.png",
       "sizes": "750x1334",
       "type": "image/png",
       "platform": "narrow",
